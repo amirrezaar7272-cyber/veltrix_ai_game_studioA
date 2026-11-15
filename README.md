@@ -1,25 +1,20 @@
 # VELTRIX AI — BEYOND INTELLIGENCE
 
-VELTRIX is a local-first, bilingual 2D game-studio prototype. It combines an optional on-device language model, a structured scene editor, local project management, and a lightweight playable runtime.
+VELTRIX is a local-first, bilingual 2D game-studio foundation. It combines an optional on-device language model, scene authoring, a playable canvas runtime, physics, keyframe animation, embedded audio, event-driven visual logic, and an Android packaging workflow.
 
-## Current studio features
+## Studio capabilities
 
 - Persian and English prompt interface.
-- Optional Qwen2.5 0.5B in-browser inference through WebLLM/WebGPU; the frontend's local path needs no AI API key or paid inference server.
-- Rule-based local fallback for devices that cannot run the larger model.
-- Versioned project files with multiple scenes and typed entities.
-- Scene creation, duplication, deletion, renaming, background color and canvas dimensions.
-- Drag-and-drop object placement, optional 16px snapping, canvas zoom and layer ordering.
-- Entity inspector for position, size, color, visibility, rotation, opacity, movement behavior and speed.
-- Entity types: player, enemy, collectible, platform, decoration, hazard, goal and NPC.
-- Runtime movement with keyboard and touch controls, collectible scoring, lives, invulnerability after damage, moving/pursuing enemies, hazards, goal completion and sequential multi-scene playthrough.
-- Initial physics authoring controls per entity: body type, mass, friction, restitution, gravity scale and sensor flag. Runtime currently supports basic gravity, jump, platform landing and bounce for the player; it is not a full rigid-body solver.
-- Initial keyframe timeline: record object poses at timestamps and apply a saved pose manually. Timeline playback, interpolation/easing and persistence inside project files are not implemented yet.
-- Local audio preview: import and play an audio file in the current browser session, choose music/effect mode and adjust volume. Audio asset persistence and in-game event playback are not implemented yet.
-- Visual logic graph authoring: add event/action/condition nodes and connect them. Runtime graph execution and event bindings are not implemented yet.
-- Android build-kit manifest export with app ID and Capacitor/Android Studio build instructions. This is not an APK; a real APK still requires a production web build, Capacitor project setup, Android SDK and Gradle.
-- Debounced local auto-save, manual save, project list, and portable .veltrix import/export.
-- Responsive layout for mobile and desktop.
+- Optional Qwen2.5 0.5B in-browser inference through WebLLM/WebGPU; no AI API key or paid inference server is required. A lightweight local fallback is used on unsupported devices.
+- Versioned .veltrix projects with multiple scenes, entity types, project validation, local auto-save and import/export.
+- Drag-and-drop scene editor, grid snapping, zoom, layer ordering, keyboard shortcuts and entity inspector.
+- Playable 2D runtime with keyboard and touch input, score, lives, collectibles, hazards, goals and scene progression.
+- Deterministic 2D AABB physics world with fixed-size substeps, gravity, body types, mass-aware collision response, friction, restitution, platform landing and jump input. It is an arcade/platformer solver, not a general 3D or constraint-based rigid-body engine.
+- Per-entity keyframe tracks with interpolation, linear/ease-in/ease-out/ease-in-out curves, duration and looping. Tracks can be previewed in the editor and sampled during gameplay.
+- Scene audio library: up to two audio files per scene, each up to 1 MB, embedded in .veltrix project data; volume and music/effect mode are configurable. Audio can be triggered by visual logic nodes. Browser autoplay rules still apply.
+- Directed visual event graph with start, collision, collect and goal triggers; move, wait, play-audio, set-visible and set-score actions. Graph traversal is bounded to prevent cyclic graphs from hanging the game loop.
+- Capacitor configuration and GitHub Actions workflow to compile a debug Android APK and publish it as a workflow artifact.
+- Responsive mobile and desktop UI.
 
 ## Run locally
 
@@ -33,12 +28,22 @@ npm run dev
 
 Open http://localhost:3000.
 
-For a production build:
+For validation and static production output:
 
 ```bash
 npx tsc --noEmit
 npm run build
 ```
+
+## Build an Android APK
+
+1. Open the repository's **Actions** tab.
+2. Select **Android APK build** and choose **Run workflow**.
+3. Keep the default application ID or enter a valid reverse-domain ID such as `com.example.mygame`.
+4. Wait for the workflow to finish, then download the `veltrix-ai-debug-apk` artifact from that run.
+5. Install and test the debug APK on a real Android device. A release APK/AAB still needs signing configuration before store distribution.
+
+The workflow uses GitHub-hosted build runners, Node.js, Capacitor, Java and Gradle. The APK is built remotely by GitHub Actions, not on the phone. The current Android package is a WebView wrapper around the static web export; WebGPU/model support depends on the Android WebView/device and may fall back to the lightweight local brain.
 
 ## On-device model
 
@@ -46,14 +51,12 @@ The optional local model requires a compatible WebGPU browser/GPU and an initial
 
 ## Project storage
 
-Projects are stored in localStorage in the current browser profile. Auto-save is enabled. Use Export .veltrix for a backup before clearing browser data or switching devices. Import a .veltrix or JSON project to restore it.
+Projects are stored in the current browser profile. Use Export .veltrix for a backup before clearing browser data or switching devices. Embedded audio is included in exported project files. Audio is limited to two files per scene and 1 MB per file to avoid exceeding typical browser storage quotas.
 
-## Known limitations
+## Current engineering limits
 
-This is a growing studio foundation, not yet a finished commercial game engine. The new physics, animation, audio and visual-logic panels are first implementation layers with the limitations listed above; a complete rigid-body solver, timeline playback/interpolation, persistent audio asset pipeline, executable visual scripting, skeletal animation, sprite/asset pipeline, advanced pathfinding, multiplayer and native APK compilation remain future work. The local AI model generates a compact design suggestion; it does not autonomously generate arbitrary production-ready game code or art assets.
-
-The repository also contains a legacy optional FastAPI/Gemini backend and Render configuration. The local-first frontend does not require that backend. Deploying the legacy backend introduces external-service and API-key dependencies.
+This is not yet a finished commercial game engine. Physics is 2D axis-aligned collision handling rather than a full rigid-body solver; there is no joint/constraint system, continuous collision detection for fast projectiles, or 3D physics. Animation is transform keyframes only, without skeletal rigs, sprite sheets or a full curve editor. Audio supports embedded short clips and event-triggered playback, not a multitrack mixer, streaming music pipeline or advanced spatial audio. Visual scripting supports a bounded set of events/actions and does not yet include arbitrary user code, branching expressions, variables or a debugger. Android automation currently creates a debug APK; signing, release AAB, store publishing and native plugin integrations remain separate work. No physical-device test is claimed until an APK is installed and exercised on target phones.
 
 ## Continuous integration
 
-GitHub Actions runs TypeScript validation and a Next.js production build on pushes and pull requests targeting the main branch.
+The frontend workflow runs TypeScript validation and a Next.js static production build on pushes and pull requests targeting `main`. The Android workflow builds a debug APK and uploads it as an artifact.
