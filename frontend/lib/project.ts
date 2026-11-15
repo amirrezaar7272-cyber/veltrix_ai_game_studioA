@@ -10,6 +10,10 @@ export type GameEntity = {
   height: number;
   color: string;
   visible: boolean;
+  behavior?: EntityBehavior;
+  speed?: number;
+  rotation?: number;
+  opacity?: number;
 };
 export type GameScene = {
   id: string;
@@ -88,7 +92,11 @@ export function validateProject(value: unknown): value is GameProject {
         ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc"].includes(entity.kind) &&
         [entity.x, entity.y, entity.width, entity.height].every(Number.isFinite) &&
         entity.width > 0 && entity.height > 0 && typeof entity.color === "string" &&
-        typeof entity.visible === "boolean" &&\n        (entity.behavior === undefined || ["static", "patrol", "float", "chase"].includes(entity.behavior)) &&\n        (entity.speed === undefined || (Number.isFinite(entity.speed) && entity.speed >= 0 && entity.speed <= 1000)) &&\n        (entity.rotation === undefined || Number.isFinite(entity.rotation)) &&\n        (entity.opacity === undefined || (Number.isFinite(entity.opacity) && entity.opacity >= 0 && entity.opacity <= 1)))) return false;
+        typeof entity.visible === "boolean" &&
+        (entity.behavior === undefined || ["static", "patrol", "float", "chase"].includes(entity.behavior)) &&
+        (entity.speed === undefined || (Number.isFinite(entity.speed) && entity.speed >= 0 && entity.speed <= 1000)) &&
+        (entity.rotation === undefined || Number.isFinite(entity.rotation)) &&
+        (entity.opacity === undefined || (Number.isFinite(entity.opacity) && entity.opacity >= 0 && entity.opacity <= 1)))) return false;
   return p.scenes.some(scene => scene.id === p.activeSceneId);
 }
 
