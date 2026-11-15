@@ -12,7 +12,7 @@ VELTRIX is a local-first, bilingual 2D game-studio prototype. It combines an opt
 - Drag-and-drop object placement, optional 16px snapping, canvas zoom and layer ordering.
 - Entity inspector for position, size, color, visibility, rotation, opacity, movement behavior and speed.
 - Entity types: player, enemy, collectible, platform, decoration, hazard, goal and NPC.
-- Runtime movement with keyboard and touch controls, collectible scoring, lives, invulnerability after damage, moving/pursuing enemies, hazards and goal completion.
+- Runtime movement with keyboard and touch controls, collectible scoring, lives, invulnerability after damage, moving/pursuing enemies, hazards, goal completion and sequential multi-scene playthrough.
 - Debounced local auto-save, manual save, project list, and portable .veltrix import/export.
 - Responsive layout for mobile and desktop.
 
