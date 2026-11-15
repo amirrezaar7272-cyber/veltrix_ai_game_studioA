@@ -14,6 +14,12 @@ export type GameEntity = {
   speed?: number;
   rotation?: number;
   opacity?: number;
+  bodyType?: "dynamic" | "static" | "kinematic";
+  mass?: number;
+  friction?: number;
+  restitution?: number;
+  gravityScale?: number;
+  isSensor?: boolean;
 };
 export type GameScene = {
   id: string;
@@ -99,7 +105,13 @@ export function validateProject(value: unknown): value is GameProject {
         (entity.behavior === undefined || ["static", "patrol", "float", "chase"].includes(entity.behavior)) &&
         (entity.speed === undefined || (Number.isFinite(entity.speed) && entity.speed >= 0 && entity.speed <= 1000)) &&
         (entity.rotation === undefined || Number.isFinite(entity.rotation)) &&
-        (entity.opacity === undefined || (Number.isFinite(entity.opacity) && entity.opacity >= 0 && entity.opacity <= 1)))) return false;
+        (entity.opacity === undefined || (Number.isFinite(entity.opacity) && entity.opacity >= 0 && entity.opacity <= 1)) &&
+        (entity.bodyType === undefined || ["dynamic", "static", "kinematic"].includes(entity.bodyType)) &&
+        (entity.mass === undefined || (Number.isFinite(entity.mass) && entity.mass >= 0.1 && entity.mass <= 1000)) &&
+        (entity.friction === undefined || (Number.isFinite(entity.friction) && entity.friction >= 0 && entity.friction <= 1)) &&
+        (entity.restitution === undefined || (Number.isFinite(entity.restitution) && entity.restitution >= 0 && entity.restitution <= 1)) &&
+        (entity.gravityScale === undefined || (Number.isFinite(entity.gravityScale) && entity.gravityScale >= 0 && entity.gravityScale <= 3)) &&
+        (entity.isSensor === undefined || typeof entity.isSensor === "boolean"))) return false;
   return p.scenes.some(scene => scene.id === p.activeSceneId);
 }
 
