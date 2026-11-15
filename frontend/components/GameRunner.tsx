@@ -31,6 +31,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     if (!player) { setStatus("missing-player"); return; }
 
     const collected = new Set<string>();
+    let points = 0, health = 3;
     const runtimeScene = { ...scene, entities };
     const audioPlayers = new Map<string, HTMLAudioElement>();
     const playAudio = (id: string) => {
@@ -44,7 +45,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     executeLogicGraph(runtimeScene, "start", player.id, { playAudio, addScore: value => { points += value; setScore(points); } });
     const physics = new PhysicsWorld({ worldWidth: width, worldHeight: height, gravity: 980, maxSubstep: 1 / 120 });
     physics.sync(entities);
-    let x = player.x, y = player.y, points = 0, health = 3, jumpWasDown = false;
+    let x = player.x, y = player.y, jumpWasDown = false;
     let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0;
     let finalStatus: "won" | "lost" | null = null;
     setScore(0); setLives(3); setStatus("playing");
