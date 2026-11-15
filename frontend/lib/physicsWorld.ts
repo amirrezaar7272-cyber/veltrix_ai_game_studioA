@@ -34,7 +34,7 @@ export class PhysicsWorld {
   }
 
   private substep(entities: GameEntity[], dt: number, input: PhysicsInput, playerId: string | undefined, contacts: Map<string,PhysicsContact>) {
-    const solids = entities.filter(e => e.visible && !e.isSensor && e.kind !== "collectible" && e.kind !== "goal");
+    const solids = entities.filter(e => e.visible && !e.isSensor && (e.kind === "platform" || e.bodyType === "static"));
     for (const e of entities) {
       if (!e.visible) continue;
       const body = this.bodies.get(e.id)!;
