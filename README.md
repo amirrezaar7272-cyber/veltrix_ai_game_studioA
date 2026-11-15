@@ -13,6 +13,11 @@ VELTRIX is a local-first, bilingual 2D game-studio prototype. It combines an opt
 - Entity inspector for position, size, color, visibility, rotation, opacity, movement behavior and speed.
 - Entity types: player, enemy, collectible, platform, decoration, hazard, goal and NPC.
 - Runtime movement with keyboard and touch controls, collectible scoring, lives, invulnerability after damage, moving/pursuing enemies, hazards, goal completion and sequential multi-scene playthrough.
+- Initial physics authoring controls per entity: body type, mass, friction, restitution, gravity scale and sensor flag. Runtime currently supports basic gravity, jump, platform landing and bounce for the player; it is not a full rigid-body solver.
+- Initial keyframe timeline: record object poses at timestamps and apply a saved pose manually. Timeline playback, interpolation/easing and persistence inside project files are not implemented yet.
+- Local audio preview: import and play an audio file in the current browser session, choose music/effect mode and adjust volume. Audio asset persistence and in-game event playback are not implemented yet.
+- Visual logic graph authoring: add event/action/condition nodes and connect them. Runtime graph execution and event bindings are not implemented yet.
+- Android build-kit manifest export with app ID and Capacitor/Android Studio build instructions. This is not an APK; a real APK still requires a production web build, Capacitor project setup, Android SDK and Gradle.
 - Debounced local auto-save, manual save, project list, and portable .veltrix import/export.
 - Responsive layout for mobile and desktop.
 
@@ -45,7 +50,7 @@ Projects are stored in localStorage in the current browser profile. Auto-save is
 
 ## Known limitations
 
-This is a growing studio foundation, not yet a finished commercial game engine. The runtime is a lightweight 2D prototype: it does not yet include a full physics engine, skeletal animation, a sprite/asset import pipeline, audio mixer, visual scripting, advanced pathfinding, multiplayer, native Android APK packaging, or a general-purpose game export pipeline. The local AI model generates a compact design suggestion; it does not autonomously generate arbitrary production-ready game code or art assets.
+This is a growing studio foundation, not yet a finished commercial game engine. The new physics, animation, audio and visual-logic panels are first implementation layers with the limitations listed above; a complete rigid-body solver, timeline playback/interpolation, persistent audio asset pipeline, executable visual scripting, skeletal animation, sprite/asset pipeline, advanced pathfinding, multiplayer and native APK compilation remain future work. The local AI model generates a compact design suggestion; it does not autonomously generate arbitrary production-ready game code or art assets.
 
 The repository also contains a legacy optional FastAPI/Gemini backend and Render configuration. The local-first frontend does not require that backend. Deploying the legacy backend introduces external-service and API-key dependencies.
 
