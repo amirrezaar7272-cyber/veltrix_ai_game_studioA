@@ -1,6 +1,6 @@
 import type { GameEntity, GameScene } from "./project";
 
-type Pose = { x?:number;y?:number;width?:number;height?:number;rotation?:number;opacity?:number };
+type Pose = { x?:number;y?:number;width?:number;height?:number;rotation?:number;opacity?:number;walkAmount?:number;walkPhase?:number;facing?:number };
 const clamp=(v:number,a:number,b:number)=>Math.max(a,Math.min(b,v));
 function rounded(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:number,r:number){
   const radius=Math.min(r,w/2,h/2);ctx.beginPath();ctx.roundRect(x,y,w,h,radius);
@@ -59,18 +59,21 @@ export function drawSceneBackground(ctx:CanvasRenderingContext2D,scene:GameScene
 }
 export function drawGameEntity(ctx:CanvasRenderingContext2D,entity:GameEntity,x:number,y:number,time:number,pose:Pose={}){
   const w=pose.width??entity.width,h=pose.height??entity.height,rotation=pose.rotation??entity.rotation??0;
-  ctx.save();ctx.globalAlpha=clamp(pose.opacity??entity.opacity??1,0,1);ctx.translate(x+w/2,y+h/2);ctx.rotate(rotation*Math.PI/180);
+  ctx.save();ctx.globalAlpha=clamp(pose.opacity??entity.opacity??1,0,1);ctx.translate(x+w/2,y+h/2);ctx.rotate(rotation*Math.PI/180+(pose.facing??0));
   const color=entity.color;const glow=entity.kind==="collectible"||entity.kind==="goal"||entity.kind==="player";
   ctx.shadowColor=glow?color:"#00000066";ctx.shadowBlur=glow?14:5;ctx.shadowOffsetY=4;
   if(entity.kind==="player"||entity.kind==="npc"){
-    const isPlayer=entity.kind==="player";const bob=Math.sin(time*5+(isPlayer?0:1))*1.5;
+    const isPlayer=entity.kind==="player";const amount=clamp(pose.walkAmount??0,0,1);const phase=pose.walkPhase??0;const swing=Math.sin(phase)*amount;const bob=Math.abs(Math.cos(phase))*amount*1.7;
     ctx.fillStyle="#00000055";ctx.shadowBlur=0;ctx.beginPath();ctx.ellipse(0,h*.43,w*.38,h*.09,0,0,Math.PI*2);ctx.fill();
+    ctx.lineCap="round";ctx.lineWidth=Math.max(3,w*.105);ctx.strokeStyle=shade(color,-45);
+    ctx.beginPath();ctx.moveTo(-w*.13,h*.22);ctx.lineTo(-w*.14-swing*w*.10,h*.39);ctx.moveTo(w*.13,h*.22);ctx.lineTo(w*.14+swing*w*.10,h*.39);ctx.stroke();
+    ctx.strokeStyle="#263b56";ctx.lineWidth=Math.max(2,w*.07);ctx.beginPath();ctx.moveTo(-w*.25,-h*.02+bob);ctx.lineTo(-w*.39+swing*w*.08,h*.17+bob);ctx.moveTo(w*.25,-h*.02+bob);ctx.lineTo(w*.39-swing*w*.08,h*.17+bob);ctx.stroke();
     const body=ctx.createLinearGradient(-w/2,0,w/2,0);body.addColorStop(0,shade(color,-35));body.addColorStop(.5,color);body.addColorStop(1,shade(color,35));
     ctx.fillStyle=body;rounded(ctx,-w*.34,-h*.05+bob,w*.68,h*.55,h*.16);ctx.fill();
     ctx.fillStyle="#f0c8a4";ctx.beginPath();ctx.ellipse(0,-h*.25+bob,w*.28,h*.25,0,0,Math.PI*2);ctx.fill();
     ctx.fillStyle=isPlayer?"#263b56":"#45334f";rounded(ctx,-w*.29,-h*.49+bob,w*.58,h*.16,h*.08);ctx.fill();
     ctx.fillStyle="#172334";ctx.beginPath();ctx.arc(-w*.1,-h*.27+bob,Math.max(1.5,w*.035),0,Math.PI*2);ctx.arc(w*.1,-h*.27+bob,Math.max(1.5,w*.035),0,Math.PI*2);ctx.fill();
-    ctx.fillStyle=shade(color,-18);rounded(ctx,-w*.3,h*.37,w*.22,h*.12,3);ctx.fill();rounded(ctx,w*.08,h*.37,w*.22,h*.12,3);ctx.fill();
+    ctx.fillStyle="#202b3b";rounded(ctx,-w*.27-swing*w*.08,h*.34,w*.24,h*.13,3);ctx.fill();rounded(ctx,w*.03+swing*w*.08,h*.34,w*.24,h*.13,3);ctx.fill();
   }else if(entity.kind==="collectible"){
     const pulse=1+Math.sin(time*4)*.08;ctx.scale(pulse,pulse);ctx.rotate(time*.7);
     ctx.fillStyle=shade(color,40);ctx.beginPath();ctx.moveTo(0,-h*.55);ctx.lineTo(w*.42,-h*.08);ctx.lineTo(0,h*.55);ctx.lineTo(-w*.42,-h*.08);ctx.closePath();ctx.fill();
