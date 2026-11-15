@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameEntity, GameScene } from "../lib/project";
 import { PhysicsWorld } from "../lib/physicsWorld";
+import { sampleAnimation } from "../lib/animation";
+import { executeLogicGraph } from "../lib/visualScript";
 
 type Props = { scene: GameScene; active: boolean; language?: "fa" | "en"; onComplete?: () => void };
 type Input = { up: boolean; down: boolean; left: boolean; right: boolean };
@@ -29,6 +31,17 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     if (!player) { setStatus("missing-player"); return; }
 
     const collected = new Set<string>();
+    const runtimeScene = { ...scene, entities };
+    const audioPlayers = new Map<string, HTMLAudioElement>();
+    const playAudio = (id: string) => {
+      const asset = scene.audioAssets?.find(item => item.id === id);
+      if (!asset) return;
+      let audio = audioPlayers.get(id);
+      if (!audio) { audio = new Audio(asset.dataUrl); audioPlayers.set(id, audio); }
+      audio.volume = asset.volume; audio.loop = asset.loop;
+      audio.currentTime = 0; void audio.play().catch(() => undefined);
+    };
+    executeLogicGraph(runtimeScene, "start", player.id, { playAudio, addScore: value => { points += value; setScore(points); } });
     const physics = new PhysicsWorld({ worldWidth: width, worldHeight: height, gravity: 980, maxSubstep: 1 / 120 });
     physics.sync(entities);
     let x = player.x, y = player.y, points = 0, health = 3, jumpWasDown = false;
@@ -53,6 +66,9 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       ax < bx + bw && ax + aw > bx && ay < by + bh && ay + ah > by;
 
     const position = (entity: GameEntity) => {
+      const track = scene.animationTracks?.find(item => item.entityId === entity.id);
+      const pose = track ? sampleAnimation(track, elapsed) : undefined;
+      if (pose) return { x: pose.x, y: pose.y };
       const speed = (entity.speed ?? 60) / 60;
       if (entity.behavior === "chase") {
         return { x: entity.x + Math.max(-90, Math.min(90, (x - entity.x) * .35)), y: entity.y + Math.max(-70, Math.min(70, (y - entity.y) * .25)) };
@@ -66,25 +82,28 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
 
     const drawEntity = (entity: GameEntity) => {
       const p = position(entity);
+      const track = scene.animationTracks?.find(item => item.entityId === entity.id);
+      const pose = track ? sampleAnimation(track, elapsed) : undefined;
+      const ew = pose?.width ?? entity.width, eh = pose?.height ?? entity.height;
       ctx.save();
-      ctx.globalAlpha = entity.opacity ?? 1;
-      ctx.translate(p.x + entity.width / 2, p.y + entity.height / 2);
-      ctx.rotate((entity.rotation ?? 0) * Math.PI / 180);
+      ctx.globalAlpha = pose?.opacity ?? entity.opacity ?? 1;
+      ctx.translate(p.x + ew / 2, p.y + eh / 2);
+      ctx.rotate((pose?.rotation ?? entity.rotation ?? 0) * Math.PI / 180);
       ctx.fillStyle = entity.color;
       if (["collectible", "enemy", "hazard"].includes(entity.kind)) {
         ctx.beginPath();
-        ctx.ellipse(0, 0, entity.width / 2, entity.height / 2, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 0, ew / 2, eh / 2, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.strokeStyle = "#ffffff88";
         ctx.lineWidth = Math.max(2, width / 480);
         ctx.stroke();
       } else {
         ctx.beginPath();
-        ctx.roundRect(-entity.width / 2, -entity.height / 2, entity.width, entity.height, Math.min(12, entity.height / 4));
+        ctx.roundRect(-ew / 2, -eh / 2, ew, eh, Math.min(12, eh / 4));
         ctx.fill();
         if (entity.kind === "goal") {
           ctx.strokeStyle = "#d9ffe9"; ctx.lineWidth = 4;
-          ctx.strokeRect(-entity.width / 2 + 5, -entity.height / 2 + 5, entity.width - 10, entity.height - 10);
+          ctx.strokeRect(-ew / 2 + 5, -eh / 2 + 5, ew - 10, eh - 10);
         }
       }
       ctx.restore();
@@ -103,6 +122,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
         const p = position(item);
         if (hit(x, y, player.width, player.height, p.x, p.y, item.width, item.height)) {
           collected.add(item.id); points += 10; setScore(points);
+          executeLogicGraph(runtimeScene, "collect", item.id, { playAudio, addScore: value => { points += value; setScore(points); } });
         }
       }
       for (const goal of entities.filter(item => item.visible && item.kind === "goal")) {
@@ -114,6 +134,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
         const p = position(danger);
         if (elapsed >= invulnerableUntil && hit(x, y, player.width, player.height, p.x, p.y, danger.width, danger.height)) {
           health -= 1; setLives(health); invulnerableUntil = elapsed + 1.1; x = player.x; y = player.y;
+          executeLogicGraph(runtimeScene, "collision", danger.id, { playAudio, addScore: value => { points += value; setScore(points); } });
           if (health <= 0) { stopped = true; finalStatus = "lost"; setStatus("lost"); }
         }
       }
@@ -148,6 +169,8 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     frame = requestAnimationFrame(draw);
     return () => {
       stopped = true; cancelAnimationFrame(frame);
+      audioPlayers.forEach(audio => { audio.pause(); audio.src = ""; });
+      audioPlayers.clear();
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
       input.current = { up: false, down: false, left: false, right: false };
