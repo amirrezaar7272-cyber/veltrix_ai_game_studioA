@@ -2,8 +2,8 @@ import type { GameEntity } from "./project";
 
 export type BodyState = { id: string; x: number; y: number; vx: number; vy: number; grounded: boolean };
 export type PhysicsContact = { a: string; b: string; normalX: number; normalY: number; sensor: boolean };
-export type PhysicsInput = { left?: boolean; right?: boolean; jumpPressed?: boolean };
-export type PhysicsConfig = { gravity?: number; maxSubstep?: number; iterations?: number; worldWidth: number; worldHeight: number };
+export type PhysicsInput = { up?: boolean; down?: boolean; left?: boolean; right?: boolean; jumpPressed?: boolean };
+export type PhysicsConfig = { gravity?: number; maxSubstep?: number; worldWidth: number; worldHeight: number };
 
 const clamp = (v: number, min: number, max: number) => Math.max(min, Math.min(max, v));
 const overlaps = (a: {x:number;y:number;width:number;height:number}, b: {x:number;y:number;width:number;height:number}) =>
@@ -42,7 +42,10 @@ export class PhysicsWorld {
         const target = ((input.right?1:0)-(input.left?1:0))*speed;
         const friction = clamp(e.friction ?? .18,0,1);
         body.vx += (target-body.vx)*clamp((target===0?friction*12:18)*dt,0,1);
-        if (input.jumpPressed && body.grounded) { body.vy = -Math.max(240, speed*1.65); body.grounded=false; }
+        if ((e.gravityScale ?? 1) <= 0) {
+          const targetY = ((input.down?1:0)-(input.up?1:0))*speed;
+          body.vy += (targetY-body.vy)*clamp((targetY===0?friction*12:18)*dt,0,1);
+        } else if (input.jumpPressed && body.grounded) { body.vy = -Math.max(240, speed*1.65); body.grounded=false; }
       }
       if (type === "dynamic") body.vy += (this.config.gravity ?? 980) * (e.gravityScale ?? 1) * dt;
       body.x += body.vx*dt;
