@@ -27,7 +27,8 @@ export default function GameRunner({ scene, active }: Props) {
 
     const collected = new Set<string>();
     let x = player.x, y = player.y, points = 0, health = 3;
-    let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0;\n    let finalStatus: "won" | "lost" | null = null;
+    let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0;
+    let finalStatus: "won" | "lost" | null = null;
     setScore(0); setLives(3); setStatus("playing");
     const keys: Record<string, keyof Input> = {
       ArrowUp: "up", w: "up", W: "up", ArrowDown: "down", s: "down", S: "down",
