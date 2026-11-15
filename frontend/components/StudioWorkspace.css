@@ -1,0 +1,33 @@
+
+.studio-workspace { margin-top: 34px; padding: 24px; border: 1px solid #293955; border-radius: 20px; background: linear-gradient(160deg,#101a2c,#0b1220); color: #edf3ff; }
+.studio-heading { display:flex; justify-content:space-between; align-items:center; gap:16px; margin-bottom:18px; }
+.studio-heading h2 { margin:5px 0; font-size:25px; letter-spacing:1px; }.studio-heading h2 span { color:#65dff4; }
+.studio-heading p:last-child,.studio-muted,.studio-footnote { color:#8998b1; font-size:12px; line-height:1.6; }
+.studio-toolbar,.studio-scene-tabs { display:flex; flex-wrap:wrap; gap:8px; margin:14px 0; }
+.studio-toolbar button,.studio-scene-tabs button { padding:10px 13px; font-size:12px; }
+.studio-quiet { background:#1a2940!important; color:#d5e5fa!important; border:1px solid #34445e!important; }
+.studio-message { padding:10px 12px; border-radius:9px; background:#122d3c; color:#8cecff; font-size:12px; }
+.studio-layout { display:grid; grid-template-columns:minmax(150px,190px) minmax(0,1fr) minmax(160px,205px); gap:14px; align-items:start; }
+.studio-sidebar,.studio-inspector { min-width:0; padding:13px; border:1px solid #263650; border-radius:13px; background:#0b1424; }
+.studio-sidebar h3,.studio-inspector h3 { margin:3px 0 12px; font-size:13px; color:#a9c6e4; }
+.studio-project-item,.studio-object-item { display:flex; width:100%; flex-direction:column; gap:4px; padding:9px; margin:5px 0; text-align:start; border:1px solid #263650; border-radius:8px; background:#111f33; color:#dce8fa; font-size:12px; }
+.studio-project-item small,.studio-object-item small { color:#8b9bb4; font-size:10px; }
+.studio-project-item.active,.studio-object-item.active,.studio-scene-tabs .active { outline:1px solid #65dff4; background:#173047!important; color:#a7f1ff!important; }
+.studio-object-list { max-height:230px; overflow:auto; }
+.studio-main { min-width:0; }
+.studio-field { display:grid; gap:6px; margin:9px 0; color:#9fb0c9; font-size:11px; }
+.studio-field input,.studio-field select { width:100%; min-width:0; padding:9px 10px; border:1px solid #34445e; border-radius:8px; background:#111e31; color:#edf3ff; font:inherit; }
+.studio-field input[type="color"] { height:37px; padding:3px; }
+.studio-canvas { position:relative; width:100%; min-height:160px; overflow:hidden; border:1px solid #435879; border-radius:12px; background-image:radial-gradient(#ffffff22 1px,transparent 1px); background-size:20px 20px; }
+.studio-canvas-grid { position:absolute; inset:0; pointer-events:none; background:linear-gradient(90deg,transparent 49.8%,#ffffff0c 50%,transparent 50.2%),linear-gradient(transparent 49.8%,#ffffff0c 50%,transparent 50.2%); }
+.studio-canvas-entity { position:absolute; min-width:5px; min-height:5px; padding:0; border:2px solid #ffffff55; box-shadow:0 3px 12px #0006; transform:translate(-50%,-50%); }
+.studio-canvas-entity.selected { outline:2px solid #fff; outline-offset:3px; }
+.studio-canvas-entity span { position:absolute; left:50%; top:100%; transform:translateX(-50%); margin-top:4px; padding:2px 4px; border-radius:4px; background:#07111ee8; color:white; font-size:9px; white-space:nowrap; }
+.studio-canvas-empty { position:absolute; inset:0; display:grid; place-items:center; color:#d3e1f4; font-size:12px; }
+.studio-scene-settings { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:8px; margin-top:8px; }
+.studio-check { display:flex; align-items:center; gap:8px; margin:12px 0; color:#c2d0e5; font-size:12px; }
+.studio-danger { width:100%; margin-top:8px; padding:9px; background:#512638; color:#ffd8e1; font-size:11px; }
+.studio-delete-project { margin-top:22px; opacity:.8; }
+.studio-footnote { margin:16px 0 0; }
+@media(max-width:850px) { .studio-layout { grid-template-columns:1fr 1fr; } .studio-main { grid-column:1/-1; grid-row:1; } .studio-sidebar,.studio-inspector { grid-row:2; } }
+@media(max-width:560px) { .studio-workspace { padding:14px; } .studio-layout { grid-template-columns:1fr; } .studio-main,.studio-sidebar,.studio-inspector { grid-column:1; grid-row:auto; } .studio-scene-settings { grid-template-columns:repeat(2,minmax(0,1fr)); } .studio-heading h2 { font-size:20px; } }
