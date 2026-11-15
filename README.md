@@ -32,6 +32,7 @@ For validation and static production output:
 
 ```bash
 npx tsc --noEmit
+npm test
 npm run build
 ```
 
@@ -59,4 +60,4 @@ This is not yet a finished commercial game engine. Physics is 2D axis-aligned co
 
 ## Continuous integration
 
-The frontend workflow runs TypeScript validation and a Next.js static production build on pushes and pull requests targeting `main`. The Android workflow builds a debug APK and uploads it as an artifact.
+The frontend workflow runs TypeScript validation, engine unit tests and a Next.js static production build on pushes and pull requests targeting `main`. The Android workflow builds a debug APK and uploads it as an artifact.
