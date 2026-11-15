@@ -7,8 +7,8 @@ import { createEntity, createProject, type EntityBehavior, type EntityKind, type
 import { deleteProject, exportProject, importProject, loadProjects, saveProject } from "../lib/projectStore";
 
 const labels = {
-  en: { studio: "PROJECT WORKSPACE", projects: "Projects", new: "New project", save: "Save project", export: "Export .veltrix", import: "Import project", scene: "Scene", addScene: "Add scene", objects: "Objects", addObject: "Add object", inspector: "Inspector", name: "Project name", sceneName: "Scene name", background: "Background", width: "Width", height: "Height", delete: "Delete", saved: "Saved on this device", empty: "No saved projects yet", select: "Select an object to edit its properties", visible: "Visible", kind: "Type", x: "Position X", y: "Position Y", w: "Width", h: "Height", color: "Color", language: "فارسی" },
-  fa: { studio: "فضای کار پروژه", projects: "پروژه‌ها", new: "پروژه جدید", save: "ذخیره پروژه", export: "خروجی .veltrix", import: "ورود پروژه", scene: "صحنه", addScene: "افزودن صحنه", objects: "اشیا", addObject: "افزودن شیء", inspector: "بازرس", name: "نام پروژه", sceneName: "نام صحنه", background: "پس‌زمینه", width: "عرض", height: "ارتفاع", delete: "حذف", saved: "روی همین دستگاه ذخیره می‌شود", empty: "هنوز پروژه‌ای ذخیره نشده", select: "برای ویرایش ویژگی‌ها یک شیء انتخاب کن", visible: "نمایش", kind: "نوع", x: "موقعیت افقی", y: "موقعیت عمودی", w: "عرض", h: "ارتفاع", color: "رنگ", language: "English" }
+  en: { studio: "PROJECT WORKSPACE", projects: "Projects", new: "New project", save: "Save project", export: "Export .veltrix", import: "Import project", scene: "Scene", addScene: "Add scene", objects: "Objects", addObject: "Add object", inspector: "Inspector", name: "Project name", sceneName: "Scene name", background: "Background", width: "Width", height: "Height", delete: "Delete", saved: "Saved on this device", empty: "No saved projects yet", select: "Select an object to edit its properties", visible: "Visible", kind: "Type", x: "Position X", y: "Position Y", w: "Width", h: "Height", color: "Color", language: "فارسی", description: "{t.description}", behavior: "Behavior", speed: "Movement speed", rotation: "Rotation", opacity: "Opacity", duplicate: "Duplicate object (Ctrl+D)", layerUp: "Layer ↑", layerDown: "Layer ↓", snap: "Snap to grid", zoom: "Zoom", chooseType: "{t.chooseType}", play: "▶ Play scene", stop: "■ Stop", deleteProject: "Delete saved project", autoHelp: "Auto-save is enabled · Drag objects · Arrows move selected object · Shift + arrows moves 16px · Delete removes · Ctrl+D duplicates. Export backups regularly; APK packaging is not implemented." },
+  fa: { studio: "فضای کار پروژه", projects: "پروژه‌ها", new: "پروژه جدید", save: "ذخیره پروژه", export: "خروجی .veltrix", import: "ورود پروژه", scene: "صحنه", addScene: "افزودن صحنه", objects: "اشیا", addObject: "افزودن شیء", inspector: "بازرس", name: "نام پروژه", sceneName: "نام صحنه", background: "پس‌زمینه", width: "عرض", height: "ارتفاع", delete: "حذف", saved: "روی همین دستگاه ذخیره می‌شود", empty: "هنوز پروژه‌ای ذخیره نشده", select: "برای ویرایش ویژگی‌ها یک شیء انتخاب کن", visible: "نمایش", kind: "نوع", x: "موقعیت افقی", y: "موقعیت عمودی", w: "عرض", h: "ارتفاع", color: "رنگ", language: "English", description: "توضیحات پروژه", behavior: "رفتار", speed: "سرعت حرکت", rotation: "چرخش", opacity: "شفافیت", duplicate: "تکثیر شیء (Ctrl+D)", layerUp: "لایه بالاتر ↑", layerDown: "لایه پایین‌تر ↓", snap: "چسبیدن به شبکه", zoom: "بزرگ‌نمایی", chooseType: "＋ انتخاب نوع", play: "▶ اجرای صحنه", stop: "■ توقف", deleteProject: "حذف پروژه ذخیره‌شده", autoHelp: "ذخیره خودکار فعال است · اشیا را بکش و جابه‌جا کن · کلیدهای جهت برای حرکت · Shift همراه جهت برای ۱۶ پیکسل · Delete برای حذف · Ctrl+D برای تکثیر. مرتب خروجی پشتیبان بگیر؛ خروجی APK هنوز آماده نیست." }
 };
 const kinds: EntityKind[] = ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc"];
 const behaviors: EntityBehavior[] = ["static", "patrol", "float", "chase"];
@@ -34,11 +34,11 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
   useEffect(() => {
     if (skipFirstAutosave.current) { skipFirstAutosave.current = false; return; }
     const timer = window.setTimeout(() => {
-      try { setProjects(saveProject(project)); setMessage("Auto-saved locally"); }
+      try { setProjects(saveProject(project)); setMessage(language === "fa" ? "به‌صورت خودکار ذخیره شد" : "Auto-saved locally"); }
       catch (error) { setMessage(error instanceof Error ? error.message : "Auto-save failed"); }
     }, 900);
     return () => window.clearTimeout(timer);
-  }, [project]);
+  }, [project, language]);
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement | null;
@@ -145,11 +145,11 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
 
   return <section className="studio-workspace" dir={language === "fa" ? "rtl" : "ltr"}>
     <div className="studio-heading">
-      <div><p className="eyebrow">{t.studio}</p><h2>VELTRIX <span>STUDIO</span></h2><p>{t.saved} · Browser storage only</p></div>
+      <div><p className="eyebrow">{t.studio}</p><h2>VELTRIX <span>STUDIO</span></h2><p>{t.saved} · {language === "fa" ? "ذخیره‌سازی در مرورگر" : "Browser storage only"}</p></div>
       <button className="studio-quiet" onClick={() => setLanguage(v => v === "en" ? "fa" : "en")}>{t.language}</button>
     </div>
     <div className="studio-toolbar">
-      <button onClick={createNew}>{t.new}</button><button onClick={save}>{t.save}</button><button className="studio-run-button" onClick={() => setIsPlaying(value => !value)}>{isPlaying ? "■ Stop" : "▶ Play scene"}</button>
+      <button onClick={createNew}>{t.new}</button><button onClick={save}>{t.save}</button><button className="studio-run-button" onClick={() => setIsPlaying(value => !value)}>{isPlaying ? t.stop : t.play}</button>
       <button className="studio-quiet" onClick={download}>{t.export}</button>
       <button className="studio-quiet" onClick={() => fileInput.current?.click()}>{t.import}</button>
       <input ref={fileInput} type="file" accept=".veltrix,.json,application/json" hidden onChange={e => void readImport(e.target.files?.[0])} />
@@ -176,7 +176,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
           {scene.entities.length === 0 && <p className="studio-canvas-empty">Add objects to begin building this scene</p>}
         </div>
         {isPlaying && <GameRunner key={scene.id} scene={scene} active={isPlaying} onComplete={() => { const index = project.scenes.findIndex(item => item.id === scene.id); const nextScene = project.scenes[index + 1]; if (nextScene) setProject(current => ({ ...current, activeSceneId: nextScene.id })); }} />}
-        <div className="studio-canvas-tools"><label><input type="checkbox" checked={snapToGrid} onChange={e => setSnapToGrid(e.target.checked)} /> Snap to grid</label><label>Zoom <input type="range" min="50" max="150" step="10" value={zoom} onChange={e => setZoom(Number(e.target.value))} /> {zoom}%</label></div>
+        <div className="studio-canvas-tools"><label><input type="checkbox" checked={snapToGrid} onChange={e => setSnapToGrid(e.target.checked)} /> {t.snap}</label><label>{t.zoom} <input type="range" min="50" max="150" step="10" value={zoom} onChange={e => setZoom(Number(e.target.value))} /> {zoom}%</label></div>
         <div className="studio-scene-settings">
           <label className="studio-field">{t.sceneName}<input value={scene.name} onChange={e => updateScene({ name: e.target.value })} /></label>
           <label className="studio-field">{t.background}<input type="color" value={scene.background} onChange={e => updateScene({ background: e.target.value })} /></label>
@@ -192,17 +192,17 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
           <label className="studio-field">{t.kind}<input value={selected.kind} readOnly /></label>
           {([[t.x, "x"], [t.y, "y"], [t.w, "width"], [t.h, "height"]] as const).map(([label, key]) => <label className="studio-field" key={key}>{label}<input type="number" min="1" max="4096" value={selected[key]} onChange={e => updateEntity({ [key]: Math.max(1, Math.min(4096, Number(e.target.value) || 1)) } as Partial<GameEntity>)} /></label>)}
           <label className="studio-field">{t.color}<input type="color" value={selected.color} onChange={e => updateEntity({ color: e.target.value })} /></label>
-          <label className="studio-field">Behavior<select value={selected.behavior || "static"} onChange={e => updateEntity({ behavior: e.target.value as EntityBehavior })}>{behaviors.map(value => <option key={value}>{value}</option>)}</select></label>
-          <label className="studio-field">Movement speed<input type="number" min="0" max="1000" value={selected.speed ?? 0} onChange={e => updateEntity({ speed: Math.max(0, Math.min(1000, Number(e.target.value) || 0)) })} /></label>
-          <label className="studio-field">Rotation<input type="number" min="-360" max="360" value={selected.rotation ?? 0} onChange={e => updateEntity({ rotation: Math.max(-360, Math.min(360, Number(e.target.value) || 0)) })} /></label>
-          <label className="studio-field">Opacity<input type="range" min="0" max="1" step=".05" value={selected.opacity ?? 1} onChange={e => updateEntity({ opacity: Number(e.target.value) })} /></label>
-          <div className="studio-layer-actions"><button className="studio-quiet" onClick={() => duplicateEntity(selected)}>Duplicate object (Ctrl+D)</button><button className="studio-quiet" onClick={() => reorderEntity(selected.id, -1)}>Layer ↑</button><button className="studio-quiet" onClick={() => reorderEntity(selected.id, 1)}>Layer ↓</button></div>
+          <label className="studio-field">{t.behavior}<select value={selected.behavior || "static"} onChange={e => updateEntity({ behavior: e.target.value as EntityBehavior })}>{behaviors.map(value => <option key={value}>{value}</option>)}</select></label>
+          <label className="studio-field">{t.speed}<input type="number" min="0" max="1000" value={selected.speed ?? 0} onChange={e => updateEntity({ speed: Math.max(0, Math.min(1000, Number(e.target.value) || 0)) })} /></label>
+          <label className="studio-field">{t.rotation}<input type="number" min="-360" max="360" value={selected.rotation ?? 0} onChange={e => updateEntity({ rotation: Math.max(-360, Math.min(360, Number(e.target.value) || 0)) })} /></label>
+          <label className="studio-field">{t.opacity}<input type="range" min="0" max="1" step=".05" value={selected.opacity ?? 1} onChange={e => updateEntity({ opacity: Number(e.target.value) })} /></label>
+          <div className="studio-layer-actions"><button className="studio-quiet" onClick={() => duplicateEntity(selected)}>{t.duplicate}</button><button className="studio-quiet" onClick={() => reorderEntity(selected.id, -1)}>{t.layerUp}</button><button className="studio-quiet" onClick={() => reorderEntity(selected.id, 1)}>{t.layerDown}</button></div>
           <label className="studio-check"><input type="checkbox" checked={selected.visible} onChange={e => updateEntity({ visible: e.target.checked })} />{t.visible}</label>
           <button className="studio-danger" onClick={() => { updateScene({ entities: scene.entities.filter(item => item.id !== selected.id) }); setSelectedId(""); }}>{t.delete}</button>
         </>}
-        <button className="studio-danger studio-delete-project" onClick={removeCurrent}>Delete saved project</button>
+        <button className="studio-danger studio-delete-project" onClick={removeCurrent}>{t.deleteProject}</button>
       </aside>
     </div>
-    <p className="studio-footnote">Auto-save is enabled · Drag objects · Arrows move selected object · Shift + arrows moves 16px · Delete removes · Ctrl+D duplicates. Export backups regularly; playable build export and APK packaging are not implemented yet.</p>
+    <p className="studio-footnote">{t.autoHelp}</p>
   </section>;
 }
