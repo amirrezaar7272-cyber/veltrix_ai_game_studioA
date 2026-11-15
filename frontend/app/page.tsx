@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import GamePreview from "../components/GamePreview";
-import { thinkLocally, thinkWithModel, type BrainProgress } from "../lib/localBrain";
+import { getDeviceProfile, thinkLocally, thinkWithModel, type BrainProgress } from "../lib/localBrain";
 
 type Result = {
   template: string; title: string; description: string; objective: string;
@@ -17,6 +17,7 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<BrainProgress>({ progress: 0, text: "" });
   const [modelError, setModelError] = useState("");
+  const deviceProfile = getDeviceProfile();
 
   async function generate() {
     if (!prompt.trim()) return;
@@ -34,17 +35,17 @@ export default function Home() {
   return <main className="shell">
     <header><div className="brand">VELTRIX <span>AI</span></div><div className="tag">BEYOND INTELLIGENCE</div></header>
     <section className="hero">
-      <p className="eyebrow">AI GAME STUDIO · PRIVATE LOCAL BRAIN 2.0</p>
+      <p className="eyebrow">AI GAME STUDIO · ADAPTIVE LOCAL BRAIN</p>
       <h1>Ideas become games. On your device.</h1>
-      <p className="sub">Describe a 2D game in Persian or English. VELTRIX runs its language model in your browser — no AI API, no API key and no paid server. The model is downloaded once and cached on this device.</p>
+      <p className="sub">Describe a 2D game in Persian or English. VELTRIX checks this device before loading its local language model. No AI API, API key or paid server is used.</p>
       <div className="model-info">
-        <strong>LOCAL MODEL · QWEN 2.5 · 0.5B</strong>
-        <span>First setup needs internet and about 1 GB of free storage. WebGPU is required. Availability depends on your device and browser.</span>
+        <strong>{deviceProfile.mode === "standard" ? "STANDARD DEVICE PROFILE · QWEN 2.5 · 0.5B" : "LIGHT DEVICE PROFILE · NO LARGE MODEL DOWNLOAD"}</strong>
+        <span>{deviceProfile.reason} First model setup, when supported, needs internet and roughly 1 GB of free storage. Model execution still depends on the GPU and browser.</span>
       </div>
       <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="مثلاً: یک بازی فضایی بساز که ربات از شهاب‌سنگ‌ها فرار کند و کریستال جمع کند..." />
       <button onClick={generate} disabled={busy || !prompt.trim()}>{busy ? "Loading local brain..." : "Generate with local AI"}</button>
       {busy && <div className="progress"><div className="progress-track"><div className="progress-fill" style={{ width: progress.progress + "%" }} /></div><small>{progress.text} {progress.progress > 0 ? progress.progress + "%" : ""}</small></div>}
-      {modelError && <p className="model-warning">مدل زبانی اجرا نشد؛ حالت پایه فعال شد. {modelError}</p>}
+      {modelError && <p className="model-warning">حالت سبک فعال شد: {modelError}</p>}
     </section>
     {result && <section className="result">
       <div>
