@@ -9,14 +9,19 @@ VELTRIX is a local-first, bilingual 2D game-studio foundation. It combines an op
 - Versioned .veltrix projects with multiple scenes, entity types, project validation, local auto-save and import/export.
 - Drag-and-drop scene editor, grid snapping, zoom, layer ordering, keyboard shortcuts and entity inspector.
 - Playable 2D runtime with keyboard and touch input, score, lives, collectibles, hazards, goals and scene progression.
-- Procedural cinematic renderer with layered skyline depth, gradient lighting, vignette, stylized character/NPC/enemy/collectible/portal/platform artwork, and bounded particle bursts for collection and damage.
+- Procedural cinematic renderer with layered skyline depth, gradient lighting, vignette, stylized character/NPC/enemy/collectible/portal/platform artwork, a directional procedural player walk cycle, and bounded particle bursts for collection and damage.
 - City role-play starter template with a top-down road grid, sidewalks, crosswalks, collision-enabled buildings, parked vehicles, wandering residents, a collectible and a mission marker. Players can enter and drive nearby vehicles with E or the mobile action button; vehicle movement is blocked by buildings. The local design brain can select this template from city/role-play prompts.
 - Deterministic 2D AABB physics world with fixed-size substeps, gravity, body types, mass-scaled player acceleration, friction, restitution, platform landing, jump input and sensor overlap detection. The current runtime simulates the controlled player against static geometry; it is an arcade/platformer solver, not a complete multi-body, 3D or constraint-based rigid-body engine.
 - Per-entity keyframe tracks with interpolation, linear/ease-in/ease-out/ease-in-out curves, duration and looping. Tracks can be previewed in the editor and sampled during gameplay.
 - Scene audio library: up to two audio files per scene, each up to 1 MB, embedded in .veltrix project data; volume and music/effect mode are configurable. Audio can be triggered by visual logic nodes. Browser autoplay rules still apply.
 - Directed visual event graph with start, collision, collect and goal triggers; move, wait, play-audio, set-visible and set-score actions. Graph traversal is bounded to prevent cyclic graphs from hanging the game loop.
-- Capacitor configuration and GitHub Actions workflow to compile a debug Android APK and publish it as a workflow artifact.
+- Local token wallet with 50/100/400-token and unlimited redemption tiers; each successful AI game generation costs 10 tokens. Redemption is stored in browser localStorage and is one-time per browser profile only, not globally secure.
+- GitHub Actions workflow for a free static GitHub Pages website, plus a separate workflow to compile a debug Android APK and publish it as a workflow artifact.
 - Responsive mobile and desktop UI.
+
+## Free hosted website
+
+The intended GitHub Pages address is `https://amirrezaar7272-cyber.github.io/veltrix_ai_game_studioA/`. To activate deployment, open **Repository Settings → Pages** and set the build/deployment source to **GitHub Actions**. The site URL is usable only after the Pages workflow completes successfully.
 
 ## Run locally
 
@@ -51,6 +56,10 @@ The workflow uses GitHub-hosted build runners, Node.js, Capacitor, Java and Grad
 ## On-device model
 
 The optional local model requires a compatible WebGPU browser/GPU and an initial model download. The current model is Qwen2.5 0.5B (quantized). Compatibility and memory use vary by device. On unsupported or constrained devices, VELTRIX uses its lightweight local fallback. Prompts processed through this local path are not sent to an AI API.
+
+## Token wallet limitations
+
+The current token wallet is a local prototype. It stores the balance and redeemed-code fingerprints in the current browser profile. Clearing browser storage, switching browsers/devices, or modifying client-side data can reset or alter it. Do not use it for paid credits or enforceable entitlements. A secure globally one-time redemption system requires a trusted server-side database and atomic redemption endpoint; no such backend is configured in this free static build.
 
 ## Project storage
 
