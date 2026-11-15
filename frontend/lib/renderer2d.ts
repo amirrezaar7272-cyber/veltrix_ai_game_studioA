@@ -7,8 +7,26 @@ function rounded(ctx:CanvasRenderingContext2D,x:number,y:number,w:number,h:numbe
 }
 function hexRgb(hex:string){const n=parseInt(hex.replace("#",""),16);return [(n>>16)&255,(n>>8)&255,n&255] as const;}
 function shade(hex:string,amount:number){const [r,g,b]=hexRgb(hex);return `rgb(${clamp(r+amount,0,255)},${clamp(g+amount,0,255)},${clamp(b+amount,0,255)})`;}
+function drawCityBackground(ctx:CanvasRenderingContext2D,scene:GameScene,time:number){
+  const {width:w,height:h}=scene;
+  const grass=ctx.createLinearGradient(0,0,w,h);grass.addColorStop(0,"#315a49");grass.addColorStop(1,"#1d3c35");ctx.fillStyle=grass;ctx.fillRect(0,0,w,h);
+  // Green public-space strips and sidewalk curbs.
+  ctx.fillStyle="#52735a";ctx.fillRect(0,0,w,24);ctx.fillRect(0,h-24,w,24);ctx.fillRect(0,0,24,h);ctx.fillRect(w-24,0,24,h);
+  ctx.fillStyle="#b2b5a0";ctx.fillRect(0,184,w,18);ctx.fillRect(0,338,w,18);ctx.fillRect(385,0,18,h);ctx.fillRect(570,0,18,h);
+  ctx.fillStyle="#343e49";ctx.fillRect(0,202,w,134);ctx.fillRect(403,0,167,h);
+  ctx.fillStyle="#e9dba0";ctx.globalAlpha=.72;
+  for(let x=20;x<w;x+=78){ctx.fillRect(x,266,42,3);}
+  for(let y=18;y<h;y+=76){ctx.fillRect(483,y,3,38);}
+  ctx.globalAlpha=1;
+  // Crosswalks at the central intersection.
+  ctx.fillStyle="#f1f0dd";for(let i=0;i<7;i++){ctx.fillRect(405+i*23,211,12,22);ctx.fillRect(405+i*23,305,12,22);ctx.fillRect(405,211+i*17,22,9);ctx.fillRect(548,211+i*17,22,9);}
+  // Park texture and subtle ambient lamps.
+  for(let i=0;i<24;i++){const px=(i*137.3)%w,py=(i*83.1)%h;if((py<180||py>360)&&(px<380||px>590)){ctx.fillStyle=i%3===0?"#8bb87833":"#0d251c22";ctx.beginPath();ctx.arc(px,py,5+(i%4)*2,0,Math.PI*2);ctx.fill();}}
+  const night=ctx.createRadialGradient(w*.5,h*.48,30,w*.5,h*.48,w*.8);night.addColorStop(0,"#ffffff00");night.addColorStop(1,"#06101a66");ctx.fillStyle=night;ctx.fillRect(0,0,w,h);
+}
 export function drawSceneBackground(ctx:CanvasRenderingContext2D,scene:GameScene,time:number){
-  const {width:w,height:h}=scene;const [r,g,b]=hexRgb(scene.background);
+  const {width:w,height:h}=scene;
+  if(scene.environment==="city"){drawCityBackground(ctx,scene,time);return;}const [r,g,b]=hexRgb(scene.background);
   const night=r+g+b<260 || b>r*1.12;
   const sky=ctx.createLinearGradient(0,0,0,h);
   sky.addColorStop(0,shade(scene.background,night?18:35));sky.addColorStop(.62,shade(scene.background,night?5:12));sky.addColorStop(1,shade(scene.background,-20));
@@ -63,6 +81,21 @@ export function drawGameEntity(ctx:CanvasRenderingContext2D,entity:GameEntity,x:
     ctx.strokeStyle=color;ctx.lineWidth=Math.max(4,w*.1);ctx.beginPath();ctx.ellipse(0,0,w*.4,h*.47,time*.15,0,Math.PI*2);ctx.stroke();
     ctx.strokeStyle="#eaffffcc";ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(0,0,w*.24,h*.34,-time*.2,0,Math.PI*2);ctx.stroke();
     ctx.fillStyle="#dfffff22";ctx.beginPath();ctx.ellipse(0,0,w*.2,h*.29,0,0,Math.PI*2);ctx.fill();
+  }else if(entity.kind==="building"){
+    const grad=ctx.createLinearGradient(-w/2,-h/2,w/2,h/2);grad.addColorStop(0,shade(color,38));grad.addColorStop(.5,color);grad.addColorStop(1,shade(color,-45));
+    ctx.fillStyle="#00000055";rounded(ctx,-w/2+5,-h/2+8,w,h,8);ctx.fill();
+    ctx.fillStyle=grad;rounded(ctx,-w/2,-h/2,w,h,8);ctx.fill();
+    ctx.fillStyle="#202e3e";rounded(ctx,-w*.38,-h*.35,w*.76,h*.7,5);ctx.fill();
+    ctx.fillStyle="#b8d8df";for(let wy=-h*.27;wy<h*.27;wy+=Math.max(13,h*.2))for(let wx=-w*.3;wx<w*.3;wx+=Math.max(16,w*.2)){ctx.fillRect(wx,wy,Math.max(6,w*.1),Math.max(7,h*.1));}
+    ctx.fillStyle=shade(color,55);ctx.fillRect(-w/2,-h/2,w,5);
+    ctx.fillStyle="#263b4a";ctx.fillRect(-w*.13,h*.22,w*.26,h*.28);
+  }else if(entity.kind==="vehicle"){
+    ctx.fillStyle="#00000066";rounded(ctx,-w/2+2,-h*.35+6,w,h*.7,8);ctx.fill();
+    ctx.fillStyle="#171f2b";rounded(ctx,-w*.48,-h*.36,w*.96,h*.72,8);ctx.fill();
+    const body=ctx.createLinearGradient(0,-h/2,0,h/2);body.addColorStop(0,shade(color,45));body.addColorStop(.5,color);body.addColorStop(1,shade(color,-35));
+    ctx.fillStyle=body;rounded(ctx,-w*.44,-h*.31,w*.88,h*.62,7);ctx.fill();
+    ctx.fillStyle="#a8d8e8";rounded(ctx,-w*.18,-h*.25,w*.36,h*.5,5);ctx.fill();
+    ctx.fillStyle="#fff2bf";ctx.fillRect(-w*.4,-h*.22,4,6);ctx.fillRect(w*.36,-h*.22,4,6);
   }else if(entity.kind==="platform"){
     const grad=ctx.createLinearGradient(0,-h/2,0,h/2);grad.addColorStop(0,shade(color,55));grad.addColorStop(.22,color);grad.addColorStop(1,shade(color,-55));
     ctx.fillStyle=grad;rounded(ctx,-w/2,-h/2,w,h,Math.min(9,h*.3));ctx.fill();
