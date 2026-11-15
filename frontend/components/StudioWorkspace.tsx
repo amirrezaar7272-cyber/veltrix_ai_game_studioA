@@ -119,7 +119,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
     setSelectedId(entity.id);
   }
   function chooseProject(item: GameProject) {
-    setProject(item); setSelectedId(item.scenes.find(s => s.id === item.activeSceneId)?.entities[0]?.id || "");
+    setProject(item); setSelectedId(item.scenes.find(s => s.id === item.activeSceneId)?.entities[0]?.id || ""); setIsPlaying(false);
   }
   function download() {
     const blob = new Blob([exportProject(project)], { type: "application/json" });
@@ -132,7 +132,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
     if (!file) return;
     try {
       const imported = importProject(await file.text());
-      setProject(imported); setSelectedId(imported.scenes[0]?.entities[0]?.id || "");
+      setProject(imported); setSelectedId(imported.scenes.find(item => item.id === imported.activeSceneId)?.entities[0]?.id || "");
       setMessage("Project imported. Save it to keep it in this device's project list.");
     } catch (error) { setMessage(error instanceof Error ? error.message : "Import failed."); }
     if (fileInput.current) fileInput.current.value = "";
