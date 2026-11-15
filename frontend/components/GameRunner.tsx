@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameEntity, GameScene } from "../lib/project";
 
-type Props = { scene: GameScene; active: boolean; onComplete?: () => void };
+type Props = { scene: GameScene; active: boolean; language?: "fa" | "en"; onComplete?: () => void };
 type Input = { up: boolean; down: boolean; left: boolean; right: boolean };
 
-export default function GameRunner({ scene, active, onComplete }: Props) {
+export default function GameRunner({ scene, active, language = "en", onComplete }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const input = useRef<Input>({ up: false, down: false, left: false, right: false });
   const [score, setScore] = useState(0);
@@ -162,20 +162,20 @@ export default function GameRunner({ scene, active, onComplete }: Props) {
 
   function press(key: keyof Input, value: boolean) { input.current[key] = value; }
   return <div className="studio-runner">
-    <div className="studio-runner-bar"><strong>LIVE SCENE</strong><span>Score: {score}</span><span>Lives: {lives}</span>
-      {status === "won" && <span>Level complete</span>}
-      {status === "lost" && <span>Game over</span>}
-      {status === "missing-player" && <span>Add a player object to run this scene</span>}
+    <div className="studio-runner-bar"><strong>{language === "fa" ? "اجرای زنده صحنه" : "LIVE SCENE"}</strong><span>{language === "fa" ? "امتیاز" : "Score"}: {score}</span><span>{language === "fa" ? "جان" : "Lives"}: {lives}</span>
+      {status === "won" && <span>{language === "fa" ? "مرحله کامل شد" : "Level complete"}</span>}
+      {status === "lost" && <span>{language === "fa" ? "بازی تمام شد" : "Game over"}</span>}
+      {status === "missing-player" && <span>{language === "fa" ? "برای اجرای صحنه یک شخصیت بازیکن اضافه کن" : "Add a player object to run this scene"}</span>}
     </div>
     <canvas ref={canvasRef} className="studio-runner-canvas" />
     <div className="studio-runner-controls">
       <span />
-      <button aria-label="Move up" onPointerDown={() => press("up", true)} onPointerUp={() => press("up", false)} onPointerLeave={() => press("up", false)} onPointerCancel={() => press("up", false)}>▲</button>
+      <button aria-label={language === "fa" ? "حرکت بالا" : "Move up"} onPointerDown={() => press("up", true)} onPointerUp={() => press("up", false)} onPointerLeave={() => press("up", false)} onPointerCancel={() => press("up", false)}>▲</button>
       <span />
-      <button aria-label="Move left" onPointerDown={() => press("left", true)} onPointerUp={() => press("left", false)} onPointerLeave={() => press("left", false)} onPointerCancel={() => press("left", false)}>◀</button>
-      <button aria-label="Move down" onPointerDown={() => press("down", true)} onPointerUp={() => press("down", false)} onPointerLeave={() => press("down", false)} onPointerCancel={() => press("down", false)}>▼</button>
-      <button aria-label="Move right" onPointerDown={() => press("right", true)} onPointerUp={() => press("right", false)} onPointerLeave={() => press("right", false)} onPointerCancel={() => press("right", false)}>▶</button>
+      <button aria-label={language === "fa" ? "حرکت چپ" : "Move left"} onPointerDown={() => press("left", true)} onPointerUp={() => press("left", false)} onPointerLeave={() => press("left", false)} onPointerCancel={() => press("left", false)}>◀</button>
+      <button aria-label={language === "fa" ? "حرکت پایین" : "Move down"} onPointerDown={() => press("down", true)} onPointerUp={() => press("down", false)} onPointerLeave={() => press("down", false)} onPointerCancel={() => press("down", false)}>▼</button>
+      <button aria-label={language === "fa" ? "حرکت راست" : "Move right"} onPointerDown={() => press("right", true)} onPointerUp={() => press("right", false)} onPointerLeave={() => press("right", false)} onPointerCancel={() => press("right", false)}>▶</button>
     </div>
-    <p className="studio-muted">Keyboard: arrows / WASD · Touch: directional pad · Collect items, avoid hazards, reach the goal.</p>
+    <p className="studio-muted">{language === "fa" ? "کنترل: کلیدهای جهت یا WASD · موبایل: دکمه‌های لمسی · آیتم‌ها را جمع کن، از خطرها دوری کن و به دروازه برس." : "Keyboard: arrows / WASD · Touch: directional pad · Collect items, avoid hazards, reach the goal."}</p>
   </div>;
 }
