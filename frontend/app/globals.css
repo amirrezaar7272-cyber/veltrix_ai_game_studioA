@@ -25,3 +25,10 @@ footer { margin-top: 70px; color: #66748d; font-size: 12px; }
 .progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: #25334a; }
 .progress-fill { height: 100%; border-radius: 99px; background: #65dff4; transition: width .25s ease; }
 .model-warning { color: #ffbd78; font-size: 12px; line-height: 1.5; }
+
+.game-preview-wrap { width: 100%; min-width: 0; }
+.game-touch-controls { display: grid; grid-template-columns: repeat(3, 54px); grid-template-rows: repeat(2, 48px); gap: 8px; justify-content: center; margin: 14px auto 8px; }
+.game-touch-button { display: flex; align-items: center; justify-content: center; min-width: 0; padding: 0; border: 1px solid #3d647c; border-radius: 12px; background: #14283d; color: #8cecff; font-size: 20px; font-weight: 800; touch-action: none; user-select: none; -webkit-user-select: none; }
+.game-touch-button:active { background: #24506a; transform: scale(.96); }
+.game-touch-spacer { pointer-events: none; }
+.game-touch-hint { margin: 6px 0 0; color: #8291aa; font-size: 11px; line-height: 1.6; text-align: center; }
