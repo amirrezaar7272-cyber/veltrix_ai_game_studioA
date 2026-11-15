@@ -82,12 +82,13 @@ export function createProject(design: NewDesign = {}): GameProject {
 export function validateProject(value: unknown): value is GameProject {
   if (!value || typeof value !== "object") return false;
   const p = value as Partial<GameProject>;
-  if (p.schemaVersion !== 1 || typeof p.id !== "string" || typeof p.name !== "string" ||
+  if (p.schemaVersion !== 1 || typeof p.id !== "string" || typeof p.name !== "string" || p.name.length < 1 || p.name.length > 80 ||
+      typeof p.description !== "string" || p.description.length > 500 || !["fa", "en"].includes(p.language || "") ||
       !Array.isArray(p.scenes) || p.scenes.length < 1 || p.scenes.length > 100) return false;
   if (!p.scenes.every(scene => scene && typeof scene.id === "string" &&
-      typeof scene.name === "string" && Number.isFinite(scene.width) && Number.isFinite(scene.height) &&
+      typeof scene.name === "string" && scene.name.length <= 80 && Number.isFinite(scene.width) && Number.isFinite(scene.height) &&
       scene.width >= 160 && scene.width <= 4096 && scene.height >= 120 && scene.height <= 4096 &&
-      typeof scene.background === "string" && Array.isArray(scene.entities) && scene.entities.length <= 1000 &&
+      /^#[0-9a-fA-F]{6}$/.test(scene.background) && Array.isArray(scene.entities) && scene.entities.length <= 1000 &&
       scene.entities.every(entity => entity && typeof entity.id === "string" &&
         typeof entity.name === "string" &&
         ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc"].includes(entity.kind) &&
