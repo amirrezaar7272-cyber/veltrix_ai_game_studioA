@@ -128,9 +128,9 @@ export function validateProject(value: unknown): value is GameProject {
           track.keyframes.every(key => key && typeof key.id === "string" && Number.isFinite(key.time) && key.time >= 0 && key.time <= track.duration &&
             [key.x,key.y,key.width,key.height,key.rotation,key.opacity].every(Number.isFinite) && key.width > 0 && key.height > 0 &&
             key.opacity >= 0 && key.opacity <= 1 && ["linear","ease-in","ease-out","ease-in-out"].includes(key.easing))))) &&
-      (scene.audioAssets === undefined || (Array.isArray(scene.audioAssets) && scene.audioAssets.length <= 100 &&
+      (scene.audioAssets === undefined || (Array.isArray(scene.audioAssets) && scene.audioAssets.length <= 2 &&
         scene.audioAssets.every(asset => asset && typeof asset.id === "string" && typeof asset.name === "string" && asset.name.length <= 180 &&
-          typeof asset.dataUrl === "string" && asset.dataUrl.length <= 12000000 && asset.dataUrl.startsWith("data:audio/") &&
+          typeof asset.dataUrl === "string" && asset.dataUrl.length <= 1500000 && asset.dataUrl.startsWith("data:audio/") &&
           ["music","effect"].includes(asset.mode) && Number.isFinite(asset.volume) && asset.volume >= 0 && asset.volume <= 1 && typeof asset.loop === "boolean"))) &&
       (scene.logicNodes === undefined || (Array.isArray(scene.logicNodes) && scene.logicNodes.length <= 500 &&
         scene.logicNodes.every(node => node && typeof node.id === "string" && ["start","collision","collect","goal","move","wait","play-audio","set-visible","set-score"].includes(node.kind) &&
