@@ -28,7 +28,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     if (!player) { setStatus("missing-player"); return; }
 
     const collected = new Set<string>();
-    let x = player.x, y = player.y, points = 0, health = 3;
+    let x = player.x, y = player.y, points = 0, health = 3, verticalVelocity = 0, grounded = false;
     let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0;
     let finalStatus: "won" | "lost" | null = null;
     setScore(0); setLives(3); setStatus("playing");
@@ -93,17 +93,32 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       last = time; elapsed += delta;
       const speed = (player.speed ?? Math.max(width, height) * .42) * delta;
       const oldX = x, oldY = y;
+      const gravity = (player.gravityScale ?? 0) > 0 && player.bodyType !== "static";
       if (input.current.left) x -= speed;
       if (input.current.right) x += speed;
-      if (input.current.up) y -= speed;
-      if (input.current.down) y += speed;
+      if (gravity) {
+        if (input.current.up && grounded) { verticalVelocity = -Math.max(260, height * .62); grounded = false; }
+        verticalVelocity += 980 * (player.gravityScale ?? 1) * delta;
+        y += verticalVelocity * delta;
+      } else {
+        if (input.current.up) y -= speed;
+        if (input.current.down) y += speed;
+      }
       x = Math.max(0, Math.min(width - player.width, x));
       y = Math.max(0, Math.min(height - player.height, y));
-
-      for (const platform of entities.filter(item => item.visible && item.kind === "platform")) {
+      grounded = false;
+      for (const platform of entities.filter(item => item.visible && item.kind === "platform" && !item.isSensor)) {
         if (hit(x, y, player.width, player.height, platform.x, platform.y, platform.width, platform.height)) {
-          x = oldX; y = oldY; break;
+          if (gravity && verticalVelocity >= 0 && oldY + player.height <= platform.y + 8) {
+            y = platform.y - player.height;
+            verticalVelocity = -(verticalVelocity * (player.restitution ?? 0));
+            grounded = true;
+          } else if (!gravity) { x = oldX; y = oldY; }
+          else if (oldX + player.width <= platform.x + 6 || oldX >= platform.x + platform.width - 6) { x = oldX; }
         }
+      }
+      if (gravity && y + player.height >= height) {
+        y = height - player.height; verticalVelocity = -(verticalVelocity * (player.restitution ?? 0)); grounded = true;
       }
       for (const item of entities.filter(item => item.visible && item.kind === "collectible" && !collected.has(item.id))) {
         const p = position(item);
