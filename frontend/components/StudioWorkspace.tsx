@@ -126,7 +126,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
         {selected && <>
           <label className="studio-field">{t.name}<input value={selected.name} onChange={e => updateEntity({ name: e.target.value })} /></label>
           <label className="studio-field">{t.kind}<input value={selected.kind} readOnly /></label>
-          {([[t.x, "x"], [t.y, "y"], [t.w, "width"], [t.h, "height"]] as const).map(([label, key]) => <label className="studio-field" key={key}>{label}<input type="number" min="1" max="4096" value={selected[key]} onChange={e => updateEntity({ [key]: Math.max(1, Math.min(4096, Number(e.target.value) || 1)) })} /></label>)}
+          {([[t.x, "x"], [t.y, "y"], [t.w, "width"], [t.h, "height"]] as const).map(([label, key]) => <label className="studio-field" key={key}>{label}<input type="number" min="1" max="4096" value={selected[key]} onChange={e => updateEntity({ [key]: Math.max(1, Math.min(4096, Number(e.target.value) || 1)) } as Partial<GameEntity>)} /></label>)}
           <label className="studio-field">{t.color}<input type="color" value={selected.color} onChange={e => updateEntity({ color: e.target.value })} /></label>
           <label className="studio-check"><input type="checkbox" checked={selected.visible} onChange={e => updateEntity({ visible: e.target.checked })} />{t.visible}</label>
           <button className="studio-danger" onClick={() => { updateScene({ entities: scene.entities.filter(item => item.id !== selected.id) }); setSelectedId(""); }}>{t.delete}</button>
