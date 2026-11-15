@@ -3,14 +3,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./StudioWorkspace.css";
 import GameRunner from "./GameRunner";
-import { createEntity, createProject, type EntityKind, type GameEntity, type GameProject, type GameScene, type NewDesign } from "../lib/project";
+import { createEntity, createProject, type EntityBehavior, type EntityKind, type GameEntity, type GameProject, type GameScene, type NewDesign } from "../lib/project";
 import { deleteProject, exportProject, importProject, loadProjects, saveProject } from "../lib/projectStore";
 
 const labels = {
   en: { studio: "PROJECT WORKSPACE", projects: "Projects", new: "New project", save: "Save project", export: "Export .veltrix", import: "Import project", scene: "Scene", addScene: "Add scene", objects: "Objects", addObject: "Add object", inspector: "Inspector", name: "Project name", sceneName: "Scene name", background: "Background", width: "Width", height: "Height", delete: "Delete", saved: "Saved on this device", empty: "No saved projects yet", select: "Select an object to edit its properties", visible: "Visible", kind: "Type", x: "Position X", y: "Position Y", w: "Width", h: "Height", color: "Color", language: "فارسی" },
   fa: { studio: "فضای کار پروژه", projects: "پروژه‌ها", new: "پروژه جدید", save: "ذخیره پروژه", export: "خروجی .veltrix", import: "ورود پروژه", scene: "صحنه", addScene: "افزودن صحنه", objects: "اشیا", addObject: "افزودن شیء", inspector: "بازرس", name: "نام پروژه", sceneName: "نام صحنه", background: "پس‌زمینه", width: "عرض", height: "ارتفاع", delete: "حذف", saved: "روی همین دستگاه ذخیره می‌شود", empty: "هنوز پروژه‌ای ذخیره نشده", select: "برای ویرایش ویژگی‌ها یک شیء انتخاب کن", visible: "نمایش", kind: "نوع", x: "موقعیت افقی", y: "موقعیت عمودی", w: "عرض", h: "ارتفاع", color: "رنگ", language: "English" }
 };
-const kinds: EntityKind[] = ["player", "enemy", "collectible", "platform", "decoration"];
+const kinds: EntityKind[] = ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc"];\nconst behaviors: EntityBehavior[] = ["static", "patrol", "float", "chase"];
 
 export default function StudioWorkspace({ initialDesign }: { initialDesign?: NewDesign }) {
   const [project, setProject] = useState<GameProject>(() => createProject());
@@ -18,7 +18,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
   const [selectedId, setSelectedId] = useState("");
   const [language, setLanguage] = useState<"fa" | "en">("en");
   const [message, setMessage] = useState("");
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);\n  const [snapToGrid, setSnapToGrid] = useState(true);\n  const [zoom, setZoom] = useState(100);\n  const canvasRef = useRef<HTMLDivElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const t = labels[language];
   const scene = useMemo(() => project.scenes.find(item => item.id === project.activeSceneId) || project.scenes[0], [project]);
@@ -41,7 +41,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
     if (!selected) return;
     updateScene({ entities: scene.entities.map(item => item.id === selected.id ? { ...item, ...patch } : item) });
   }
-  function save() {
+  function moveEntity(id: string, clientX: number, clientY: number) {\n    const rect = canvasRef.current?.getBoundingClientRect();\n    if (!rect) return;\n    const scaleX = scene.width / rect.width, scaleY = scene.height / rect.height;\n    const entity = scene.entities.find(item => item.id === id);\n    if (!entity) return;\n    let x = Math.max(0, Math.min(scene.width - entity.width, (clientX - rect.left) * scaleX));\n    let y = Math.max(0, Math.min(scene.height - entity.height, (clientY - rect.top) * scaleY));\n    if (snapToGrid) { x = Math.round(x / 16) * 16; y = Math.round(y / 16) * 16; }\n    updateScene({ entities: scene.entities.map(item => item.id === id ? { ...item, x, y } : item) });\n  }\n  function duplicateEntity(entity: GameEntity) {\n    const copy = { ...entity, id: crypto.randomUUID(), name: entity.name + " Copy", x: Math.min(scene.width - entity.width, entity.x + 24), y: Math.min(scene.height - entity.height, entity.y + 24) };\n    updateScene({ entities: [...scene.entities, copy] }); setSelectedId(copy.id);\n  }\n  function save() {
     try { const next = saveProject(project); setProjects(next); setMessage(t.saved); }
     catch (error) { setMessage(error instanceof Error ? error.message : "Could not save project."); }
   }
@@ -110,13 +110,13 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
       <div className="studio-main">
         <label className="studio-field">{t.name}<input value={project.name} maxLength={80} onChange={e => setProject(p => ({ ...p, name: e.target.value }))} /></label>
         <div className="studio-scene-tabs">{project.scenes.map(item => <button key={item.id} className={item.id === scene.id ? "active" : "studio-quiet"} onClick={() => { setProject(p => ({ ...p, activeSceneId: item.id })); setSelectedId(""); }}>{item.name}</button>)}<button className="studio-quiet" onClick={addScene}>＋ {t.addScene}</button></div>
-        <div className="studio-canvas" style={{ aspectRatio: scene.width + " / " + scene.height, background: scene.background }}>
+        <div ref={canvasRef} className="studio-canvas" style={{ aspectRatio: scene.width + " / " + scene.height, background: scene.background, transform: "scale(" + (zoom / 100) + ")", transformOrigin: "top center" }}>
           <div className="studio-canvas-grid" />
-          {scene.entities.filter(entity => entity.visible).map(entity => <button key={entity.id} aria-label={entity.name} onClick={() => setSelectedId(entity.id)} className={"studio-canvas-entity " + (entity.id === selectedId ? "selected" : "")} style={{ left: (entity.x / scene.width * 100) + "%", top: (entity.y / scene.height * 100) + "%", width: (entity.width / scene.width * 100) + "%", height: (entity.height / scene.height * 100) + "%", background: entity.color, borderRadius: entity.kind === "collectible" || entity.kind === "enemy" ? "50%" : "7px" }}><span>{entity.name}</span></button>)}
+          {scene.entities.filter(entity => entity.visible).map(entity => <button key={entity.id} aria-label={entity.name} onPointerDown={event => { event.preventDefault(); setSelectedId(entity.id); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (event.buttons === 1) moveEntity(entity.id, event.clientX, event.clientY); }} onClick={() => setSelectedId(entity.id)} className={"studio-canvas-entity " + (entity.id === selectedId ? "selected" : "")} style={{ left: ((entity.x + entity.width / 2) / scene.width * 100) + "%", top: ((entity.y + entity.height / 2) / scene.height * 100) + "%", width: (entity.width / scene.width * 100) + "%", height: (entity.height / scene.height * 100) + "%", background: entity.color, opacity: entity.opacity ?? 1, transform: "translate(-50%,-50%) rotate(" + (entity.rotation || 0) + "deg)", borderRadius: ["collectible", "enemy", "hazard"].includes(entity.kind) ? "50%" : "7px" }}><span>{entity.name}</span></button>)}
           {scene.entities.length === 0 && <p className="studio-canvas-empty">Add objects to begin building this scene</p>}
         </div>
         {isPlaying && <GameRunner key={scene.id} scene={scene} active={isPlaying} />}
-        <div className="studio-scene-settings">
+        <div className="studio-canvas-tools"><label><input type="checkbox" checked={snapToGrid} onChange={e => setSnapToGrid(e.target.checked)} /> Snap to grid</label><label>Zoom <input type="range" min="50" max="150" step="10" value={zoom} onChange={e => setZoom(Number(e.target.value))} /> {zoom}%</label></div>\n        <div className="studio-scene-settings">
           <label className="studio-field">{t.sceneName}<input value={scene.name} onChange={e => updateScene({ name: e.target.value })} /></label>
           <label className="studio-field">{t.background}<input type="color" value={scene.background} onChange={e => updateScene({ background: e.target.value })} /></label>
           <label className="studio-field">{t.width}<input type="number" min="160" max="4096" value={scene.width} onChange={e => updateScene({ width: Math.max(160, Math.min(4096, Number(e.target.value) || 160)) })} /></label>
@@ -130,7 +130,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
           <label className="studio-field">{t.name}<input value={selected.name} onChange={e => updateEntity({ name: e.target.value })} /></label>
           <label className="studio-field">{t.kind}<input value={selected.kind} readOnly /></label>
           {([[t.x, "x"], [t.y, "y"], [t.w, "width"], [t.h, "height"]] as const).map(([label, key]) => <label className="studio-field" key={key}>{label}<input type="number" min="1" max="4096" value={selected[key]} onChange={e => updateEntity({ [key]: Math.max(1, Math.min(4096, Number(e.target.value) || 1)) } as Partial<GameEntity>)} /></label>)}
-          <label className="studio-field">{t.color}<input type="color" value={selected.color} onChange={e => updateEntity({ color: e.target.value })} /></label>
+          <label className="studio-field">{t.color}<input type="color" value={selected.color} onChange={e => updateEntity({ color: e.target.value })} /></label>\n          <label className="studio-field">Behavior<select value={selected.behavior || "static"} onChange={e => updateEntity({ behavior: e.target.value as EntityBehavior })}>{behaviors.map(value => <option key={value}>{value}</option>)}</select></label>\n          <label className="studio-field">Movement speed<input type="number" min="0" max="1000" value={selected.speed ?? 0} onChange={e => updateEntity({ speed: Math.max(0, Math.min(1000, Number(e.target.value) || 0)) })} /></label>\n          <label className="studio-field">Rotation<input type="number" min="-360" max="360" value={selected.rotation ?? 0} onChange={e => updateEntity({ rotation: Math.max(-360, Math.min(360, Number(e.target.value) || 0)) })} /></label>\n          <label className="studio-field">Opacity<input type="range" min="0" max="1" step=".05" value={selected.opacity ?? 1} onChange={e => updateEntity({ opacity: Number(e.target.value) })} /></label>\n          <button className="studio-quiet" onClick={() => duplicateEntity(selected)}>Duplicate object</button>
           <label className="studio-check"><input type="checkbox" checked={selected.visible} onChange={e => updateEntity({ visible: e.target.checked })} />{t.visible}</label>
           <button className="studio-danger" onClick={() => { updateScene({ entities: scene.entities.filter(item => item.id !== selected.id) }); setSelectedId(""); }}>{t.delete}</button>
         </>}
