@@ -18,7 +18,7 @@ test("dynamic player falls onto a static platform and can jump", () => {
 test("diagonal top-down movement is normalized to the same speed", () => {
   const player: GameEntity = { id:"p",name:"P",kind:"player",x:10,y:10,width:10,height:10,color:"#ffffff",visible:true,speed:180,gravityScale:0 };
   const world = new PhysicsWorld({worldWidth:500,worldHeight:500,maxSubstep:1/120});
-  world.step([player],1/60,{right:true,down:true},player.id);
+  for (let i = 0; i < 30; i++) world.step([player],1/60,{right:true,down:true},player.id);
   const body=world.bodies.get(player.id)!;
   assert.ok(Math.abs(Math.hypot(body.vx,body.vy)-180)<0.01);
 });
