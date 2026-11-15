@@ -3,15 +3,17 @@
 import { useEffect, useRef, useState } from "react";
 import type { GameEntity, GameScene } from "../lib/project";
 
-type Props = { scene: GameScene; active: boolean };
+type Props = { scene: GameScene; active: boolean; onComplete?: () => void };
 type Input = { up: boolean; down: boolean; left: boolean; right: boolean };
 
-export default function GameRunner({ scene, active }: Props) {
+export default function GameRunner({ scene, active, onComplete }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const input = useRef<Input>({ up: false, down: false, left: false, right: false });
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [status, setStatus] = useState<"playing" | "won" | "lost" | "missing-player">("playing");
+  const onCompleteRef = useRef(onComplete);
+  onCompleteRef.current = onComplete;
 
   useEffect(() => {
     if (!active || !canvasRef.current) return;
@@ -111,7 +113,7 @@ export default function GameRunner({ scene, active }: Props) {
       }
       for (const goal of entities.filter(item => item.visible && item.kind === "goal")) {
         if (hit(x, y, player.width, player.height, goal.x, goal.y, goal.width, goal.height)) {
-          stopped = true; finalStatus = "won"; setStatus("won");
+          stopped = true; finalStatus = "won"; setStatus("won"); onCompleteRef.current?.();
         }
       }
       for (const danger of entities.filter(item => !stopped && item.visible && (item.kind === "enemy" || item.kind === "hazard"))) {
