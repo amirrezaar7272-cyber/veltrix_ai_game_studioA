@@ -194,10 +194,20 @@ export default function GamePreview({ template, theme = "Fantasy" }: { template:
       type="button"
       className="game-touch-button"
       aria-label={label}
-      onPointerDown={event => { event.preventDefault(); setDirection(direction, true); }}
-      onPointerUp={() => setDirection(direction, false)}
-      onPointerCancel={() => setDirection(direction, false)}
-      onPointerLeave={() => setDirection(direction, false)}
+      onPointerDown={event => {
+        event.preventDefault();
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setDirection(direction, true);
+      }}
+      onPointerUp={event => {
+        setDirection(direction, false);
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      }}
+      onPointerCancel={event => {
+        setDirection(direction, false);
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
+      }}
+      onLostPointerCapture={() => setDirection(direction, false)}
       onContextMenu={event => event.preventDefault()}
     >{symbol}</button>
   );
