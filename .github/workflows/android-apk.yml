@@ -1,0 +1,60 @@
+name: Android APK build
+
+on:
+  workflow_dispatch:
+    inputs:
+      app_id:
+        description: Android application ID (for example com.veltrix.game)
+        required: true
+        default: com.veltrix.game
+  push:
+    paths:
+      - "frontend/**"
+      - ".github/workflows/android-apk.yml"
+    branches: [main]
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install frontend and Capacitor dependencies
+        working-directory: frontend
+        run: npm install
+      - name: Validate app ID
+        shell: bash
+        run: |
+          APP_ID="${{ github.event.inputs.app_id || 'com.veltrix.game' }}"
+          if [[ ! "$APP_ID" =~ ^[a-z][a-z0-9_]*(\.[a-z][a-z0-9_]*)+$ ]]; then
+            echo "Invalid Android application ID: $APP_ID"
+            exit 1
+          fi
+          sed -i "s/com.veltrix.game/$APP_ID/" frontend/capacitor.config.ts
+      - name: Build static web app
+        working-directory: frontend
+        run: npm run build
+      - name: Add Android platform
+        working-directory: frontend
+        run: npx cap add android
+      - name: Sync web assets
+        working-directory: frontend
+        run: npx cap sync android
+      - name: Assemble debug APK
+        working-directory: frontend/android
+        run: ./gradlew assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: veltrix-ai-debug-apk
+          path: frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
