@@ -21,6 +21,11 @@ export type GameEntity = {
   gravityScale?: number;
   isSensor?: boolean;
 };
+export type AnimationKeyframe = { id: string; time: number; x: number; y: number; width: number; height: number; rotation: number; opacity: number; easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" };
+export type AnimationTrack = { id: string; entityId: string; name: string; duration: number; loop: boolean; keyframes: AnimationKeyframe[] };
+export type AudioAsset = { id: string; name: string; dataUrl: string; mode: "music" | "effect"; volume: number; loop: boolean };
+export type LogicNode = { id: string; kind: "start" | "collision" | "collect" | "move" | "wait" | "play-audio" | "set-visible" | "set-score"; entityId?: string; value?: number; audioId?: string };
+export type LogicEdge = { from: string; to: string };
 export type GameScene = {
   id: string;
   name: string;
@@ -28,6 +33,10 @@ export type GameScene = {
   height: number;
   background: string;
   entities: GameEntity[];
+  animationTracks?: AnimationTrack[];
+  audioAssets?: AudioAsset[];
+  logicNodes?: LogicNode[];
+  logicEdges?: LogicEdge[];
 };
 export type GameProject = {
   schemaVersion: 1;
@@ -111,7 +120,25 @@ export function validateProject(value: unknown): value is GameProject {
         (entity.friction === undefined || (Number.isFinite(entity.friction) && entity.friction >= 0 && entity.friction <= 1)) &&
         (entity.restitution === undefined || (Number.isFinite(entity.restitution) && entity.restitution >= 0 && entity.restitution <= 1)) &&
         (entity.gravityScale === undefined || (Number.isFinite(entity.gravityScale) && entity.gravityScale >= 0 && entity.gravityScale <= 3)) &&
-        (entity.isSensor === undefined || typeof entity.isSensor === "boolean"))) return false;
+        (entity.isSensor === undefined || typeof entity.isSensor === "boolean")) &&
+      (scene.animationTracks === undefined || (Array.isArray(scene.animationTracks) && scene.animationTracks.length <= 500 &&
+        scene.animationTracks.every(track => track && typeof track.id === "string" && typeof track.entityId === "string" &&
+          typeof track.name === "string" && track.name.length <= 80 && Number.isFinite(track.duration) && track.duration > 0 && track.duration <= 600 &&
+          typeof track.loop === "boolean" && Array.isArray(track.keyframes) && track.keyframes.length <= 2000 &&
+          track.keyframes.every(key => key && typeof key.id === "string" && Number.isFinite(key.time) && key.time >= 0 && key.time <= track.duration &&
+            [key.x,key.y,key.width,key.height,key.rotation,key.opacity].every(Number.isFinite) && key.width > 0 && key.height > 0 &&
+            key.opacity >= 0 && key.opacity <= 1 && ["linear","ease-in","ease-out","ease-in-out"].includes(key.easing))))) &&
+      (scene.audioAssets === undefined || (Array.isArray(scene.audioAssets) && scene.audioAssets.length <= 100 &&
+        scene.audioAssets.every(asset => asset && typeof asset.id === "string" && typeof asset.name === "string" && asset.name.length <= 180 &&
+          typeof asset.dataUrl === "string" && asset.dataUrl.length <= 12000000 && asset.dataUrl.startsWith("data:audio/") &&
+          ["music","effect"].includes(asset.mode) && Number.isFinite(asset.volume) && asset.volume >= 0 && asset.volume <= 1 && typeof asset.loop === "boolean"))) &&
+      (scene.logicNodes === undefined || (Array.isArray(scene.logicNodes) && scene.logicNodes.length <= 500 &&
+        scene.logicNodes.every(node => node && typeof node.id === "string" && ["start","collision","collect","move","wait","play-audio","set-visible","set-score"].includes(node.kind) &&
+          (node.entityId === undefined || typeof node.entityId === "string") && (node.value === undefined || Number.isFinite(node.value)) &&
+          (node.audioId === undefined || typeof node.audioId === "string")))) &&
+      (scene.logicEdges === undefined || (Array.isArray(scene.logicEdges) && scene.logicEdges.length <= 2000 &&
+        scene.logicEdges.every(edge => edge && typeof edge.from === "string" && typeof edge.to === "string" &&
+          scene.logicNodes?.some(node => node.id === edge.from) && scene.logicNodes?.some(node => node.id === edge.to))))) return false;
   return p.scenes.some(scene => scene.id === p.activeSceneId);
 }
 
