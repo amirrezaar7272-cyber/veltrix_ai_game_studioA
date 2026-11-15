@@ -151,9 +151,12 @@ export function validateProject(value: unknown): value is GameProject {
         scene.logicNodes.every(node => node && typeof node.id === "string" && ["start","collision","collect","goal","move","wait","play-audio","set-visible","set-score"].includes(node.kind) &&
           (node.entityId === undefined || typeof node.entityId === "string") && (node.value === undefined || Number.isFinite(node.value)) &&
           (node.audioId === undefined || typeof node.audioId === "string")))) &&
-      (scene.logicEdges === undefined || (Array.isArray(scene.logicEdges) && scene.logicEdges.length <= 2000 &&
-        scene.logicEdges.every(edge => edge && typeof edge.from === "string" && typeof edge.to === "string" &&
-          scene.logicNodes?.some(node => node.id === edge.from) && scene.logicNodes?.some(node => node.id === edge.to))))) return false;
+      true)) return false;
+  for (const scene of p.scenes) {
+    if (scene.logicEdges !== undefined && (!Array.isArray(scene.logicEdges) || scene.logicEdges.length > 2000 ||
+        scene.logicEdges.some(edge => !edge || typeof edge.from !== "string" || typeof edge.to !== "string" ||
+          !scene.logicNodes?.some(node => node.id === edge.from) || !scene.logicNodes?.some(node => node.id === edge.to)))) return false;
+  }
   return p.scenes.some(scene => scene.id === p.activeSceneId);
 }
 
