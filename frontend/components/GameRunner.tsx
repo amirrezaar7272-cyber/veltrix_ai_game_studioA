@@ -88,7 +88,7 @@ export default function GameRunner({ scene, active }: Props) {
       if (stopped) return;
       const delta = Math.min((time - (last || time)) / 1000, .04);
       last = time; elapsed += delta;
-      const speed = Math.max(width, height) * .42 * delta;
+      const speed = (player.speed ?? Math.max(width, height) * .42) * delta;
       const oldX = x, oldY = y;
       if (input.current.left) x -= speed;
       if (input.current.right) x += speed;
