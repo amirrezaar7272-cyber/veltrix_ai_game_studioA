@@ -38,3 +38,16 @@
 .studio-runner-canvas { display:block; width:100%; height:auto; border:1px solid #46647a; border-radius:8px; touch-action:none; }
 .studio-runner-controls { display:grid; grid-template-columns:repeat(3,48px); grid-template-rows:repeat(2,42px); justify-content:center; gap:6px; margin:12px auto 4px; }
 .studio-runner-controls button { padding:0; border:1px solid #326b64; background:#163c3a; color:#a9f5dd; touch-action:none; user-select:none; }
+
+.studio-canvas { touch-action: none; }
+.studio-canvas-entity { cursor: grab; touch-action: none; user-select: none; }
+.studio-canvas-entity:active { cursor: grabbing; }
+.studio-canvas-tools { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin:10px 0; color:#a9bad2; font-size:11px; }
+.studio-canvas-tools label { display:flex; align-items:center; gap:8px; }
+.studio-canvas-tools input[type="range"] { width:110px; }
+.studio-scene-tab { display:flex; align-items:center; gap:3px; }
+.studio-tab-action { padding:7px 9px!important; background:#18283d; color:#b8c9df; border:1px solid #34445e; }
+.studio-layer-actions { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
+.studio-layer-actions button:first-child { grid-column:1/-1; }
+.studio-field textarea { width:100%; resize:vertical; min-height:54px; padding:9px 10px; border:1px solid #34445e; border-radius:8px; background:#111e31; color:#edf3ff; font:inherit; }
+.studio-canvas-entity:focus-visible { outline:3px solid #fff; outline-offset:4px; }
