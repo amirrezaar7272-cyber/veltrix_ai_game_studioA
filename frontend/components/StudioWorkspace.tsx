@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./StudioWorkspace.css";
 import GameRunner from "./GameRunner";
+import AdvancedTools from "./AdvancedTools";
 import { createEntity, createProject, type EntityBehavior, type EntityKind, type GameEntity, type GameProject, type GameScene, type NewDesign } from "../lib/project";
 import { deleteProject, exportProject, importProject, loadProjects, saveProject } from "../lib/projectStore";
 
@@ -183,6 +184,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
           <label className="studio-field">{t.width}<input type="number" min="160" max="4096" value={scene.width} onChange={e => updateScene({ width: Math.max(160, Math.min(4096, Number(e.target.value) || 160)) })} /></label>
           <label className="studio-field">{t.height}<input type="number" min="120" max="4096" value={scene.height} onChange={e => updateScene({ height: Math.max(120, Math.min(4096, Number(e.target.value) || 120)) })} /></label>
         </div>
+        <AdvancedTools scene={scene} selected={selected} onPatch={updateEntity} language={language} projectName={project.name} />
       </div>
       <aside className="studio-inspector">
         <h3>{t.inspector}</h3>
