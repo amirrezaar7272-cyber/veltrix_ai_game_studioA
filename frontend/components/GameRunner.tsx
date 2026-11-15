@@ -26,7 +26,7 @@ export default function GameRunner({ scene, active }: Props) {
     if (!player) { setRunning(false); return; }
     const collected = new Set<string>();
     let x = player.x, y = player.y, points = 0, health = 3, last = 0, elapsed = 0;
-    let stopped = false, frame = 0;
+    let stopped = false, frame = 0, invulnerableUntil = 0;
     setScore(0); setLives(3); setRunning(true);
     const keys: Record<string, keyof Input> = {
       ArrowUp: "up", w: "up", W: "up", ArrowDown: "down", s: "down", S: "down",
@@ -48,15 +48,15 @@ export default function GameRunner({ scene, active }: Props) {
       if (input.current.down) y += speed;
       x = Math.max(0, Math.min(width - player.width, x));
       y = Math.max(0, Math.min(height - player.height, y));
-      for (const obstacle of entities.filter(e => e.kind === "platform")) {
+      for (const obstacle of entities.filter(e => e.visible && e.kind === "platform")) {
         if (hit(x, y, player.width, player.height, obstacle.x, obstacle.y, obstacle.width, obstacle.height)) { x = oldX; y = oldY; break; }
       }
-      for (const item of entities.filter(e => e.kind === "collectible" && !collected.has(e.id))) {
+      for (const item of entities.filter(e => e.visible && e.kind === "collectible" && !collected.has(e.id))) {
         if (hit(x, y, player.width, player.height, item.x, item.y, item.width, item.height)) {
           collected.add(item.id); points += 10; setScore(points);
         }
       }
-      for (const enemy of entities.filter(e => e.kind === "enemy")) {
+      for (const enemy of entities.filter(e => e.visible && e.kind === "enemy")) {
         const drift = Math.sin(elapsed * 1.8 + enemy.x * 0.01) * Math.min(35, width * 0.04);
         if (hit(x, y, player.width, player.height, enemy.x + drift, enemy.y, enemy.width, enemy.height)) {
           health -= 1; setLives(health); x = player.x; y = player.y;
