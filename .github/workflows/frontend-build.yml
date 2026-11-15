@@ -19,6 +19,11 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm install
+      - name: Apply non-breaking security updates and audit dependencies
+        working-directory: frontend
+        run: |
+          npm audit fix
+          npm audit --audit-level=moderate
       - name: Type check frontend
         working-directory: frontend
         run: npx tsc --noEmit
