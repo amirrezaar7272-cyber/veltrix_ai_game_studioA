@@ -127,6 +127,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       }
       for (const goal of entities.filter(item => item.visible && item.kind === "goal")) {
         if (hit(x, y, player.width, player.height, goal.x, goal.y, goal.width, goal.height)) {
+          void executeLogicGraph(runtimeScene, "goal", goal.id, { playAudio, addScore: value => { points += value; setScore(points); } });
           stopped = true; finalStatus = "won"; setStatus("won"); onCompleteRef.current?.();
         }
       }
