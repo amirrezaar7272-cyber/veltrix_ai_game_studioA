@@ -83,6 +83,13 @@ export class PhysicsWorld {
         body.grounded=true;
       }
       if (body.y<0) { body.y=0; if(body.vy<0) body.vy=0; }
+      for (const sensor of entities.filter(item => item.visible && item.isSensor && item.id !== e.id)) {
+        const sensorBody=this.bodies.get(sensor.id)!;
+        if (overlaps(bodyRect(body,e),bodyRect(sensorBody,sensor))) {
+          const key=[e.id,sensor.id].sort().join(":");
+          contacts.set(key,{a:e.id,b:sensor.id,normalX:0,normalY:0,sensor:true});
+        }
+      }
     }
     for (const e of entities) {
       const body=this.bodies.get(e.id)!;
