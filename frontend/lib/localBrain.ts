@@ -1,5 +1,5 @@
 export type LocalGameDesign = {
-  template: "coin_collector" | "dodge";
+  template: "coin_collector" | "dodge" | "city";
   title: string;
   description: string;
   objective: string;
@@ -47,23 +47,27 @@ function remember(prompt: string) {
 export function thinkLocally(prompt: string): LocalGameDesign {
   const text = prompt.toLocaleLowerCase();
   const persian = /[\u0600-\u06ff]/.test(prompt);
-  const wantsDodge = /dodge|avoid|escape|obstacle|enemy|دشمن|فرار|جا.?خالی|مانع|اجتناب/.test(text);
-  const template = wantsDodge ? "dodge" : "coin_collector";
+  const wantsCity = /\bcity\b|\btown\b|urban|role.?play|rp city|شهر|شهری|خیابان|ماشین|خودرو/.test(text);
+  const wantsDodge = !wantsCity && /dodge|avoid|escape|obstacle|enemy|دشمن|فرار|جا.?خالی|مانع|اجتناب/.test(text);
+  const template = wantsCity ? "city" : wantsDodge ? "dodge" : "coin_collector";
   const difficulty = /hard|difficult|سخت|دشوار/.test(text) ? (persian ? "سخت" : "Hard")
     : /easy|simple|آسان|ساده/.test(text) ? (persian ? "آسان" : "Easy")
     : (persian ? "متوسط" : "Normal");
   const theme = /space|planet|فضا|سیاره|کهکشان/.test(text) ? (persian ? "فضایی" : "Space")
     : /forest|jungle|جنگل|طبیعت/.test(text) ? (persian ? "جنگلی" : "Forest")
     : /cyber|robot|ربات|سایبر/.test(text) ? (persian ? "سایبر" : "Cyber")
+    : wantsCity ? (persian ? "شهری" : "City")
     : (persian ? "فانتزی" : "Fantasy");
   remember(prompt);
   return {
     template,
-    title: wantsDodge ? (persian ? "فرار بزرگ" : "The Great Escape") : (persian ? "شکارچی سکه" : "Coin Quest"),
-    description: wantsDodge
+    title: wantsCity ? (persian ? "زندگی در شهر" : "City Life") : wantsDodge ? (persian ? "فرار بزرگ" : "The Great Escape") : (persian ? "شکارچی سکه" : "Coin Quest"),
+    description: wantsCity ? (persian ? "یک ماجراجویی نقش‌آفرینی شهری از نمای بالا؛ در خیابان‌ها حرکت کن، با ساکنان روبه‌رو شو و مأموریت‌ها را انجام بده." : "A top-down city role-play prototype. Explore streets, meet residents, avoid buildings and complete simple missions.")
+      : wantsDodge
       ? (persian ? "یک بازی دوبعدی سرعتی؛ بازیکن باید از موانع و دشمنان دوری کند و زنده بماند." : "A fast 2D survival game. Move carefully, avoid obstacles and stay alive.")
       : (persian ? "یک ماجراجویی دوبعدی؛ بازیکن در محیط حرکت می‌کند و آیتم‌های درخشان را جمع‌آوری می‌کند." : "A 2D adventure. Explore the level, collect glowing items and build your score."),
-    objective: wantsDodge
+    objective: wantsCity ? (persian ? "در شهر گشت‌وگذار کن، توکن مأموریت را بردار و به نشان مأموریت برس." : "Explore the district, collect the mission token and reach the mission marker.")
+      : wantsDodge
       ? (persian ? "تا جای ممکن زنده بمان و به موانع برخورد نکن." : "Survive as long as possible without hitting obstacles.")
       : (persian ? "همه سکه‌ها را جمع کن و بیشترین امتیاز را بگیر." : "Collect the coins and reach the highest score."),
     difficulty, theme, generation_mode: "local_brain",
@@ -103,9 +107,9 @@ export async function thinkWithModel(
       { role: "system", content: [
         "You are VELTRIX, an expert 2D game designer.",
         "Understand the user's request in Persian or English.",
-        "Return only a valid JSON object with these fields: template (coin_collector or dodge), title, description, objective, difficulty, theme.",
+        "Return only a valid JSON object with these fields: template (coin_collector, dodge or city), title, description, objective, difficulty, theme.",
         "Keep all natural-language fields in the same language as the user.",
-        "Design a playable 2D starter game. Choose dodge for survival or avoidance games; otherwise coin_collector.",
+        "Design a playable 2D starter game. Choose city for role-play, town, urban or driving-exploration games; choose dodge for survival or avoidance games; otherwise coin_collector.",
         "Do not include markdown fences or extra keys."
       ].join(" ") },
       ...(history.length ? [{ role: "assistant" as const, content: "Recent project prompts: " + history.join(" | ") }] : []),
@@ -120,7 +124,7 @@ export async function thinkWithModel(
   const parsed = JSON.parse(raw.replace(/^\s*\`\`\`(?:json)?/i, "").replace(/\`\`\`\s*$/, "").trim());
   const persian = /[\u0600-\u06ff]/.test(prompt);
   const design: LocalGameDesign = {
-    template: parsed.template === "dodge" ? "dodge" : "coin_collector",
+    template: parsed.template === "city" ? "city" : parsed.template === "dodge" ? "dodge" : "coin_collector",
     title: typeof parsed.title === "string" ? parsed.title.slice(0, 90) : (persian ? "بازی جدید" : "New Game"),
     description: typeof parsed.description === "string" ? parsed.description.slice(0, 500) : "",
     objective: typeof parsed.objective === "string" ? parsed.objective.slice(0, 300) : "",
