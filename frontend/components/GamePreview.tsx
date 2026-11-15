@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import Phaser from "phaser";
+import type PhaserTypes from "phaser";
 
 type Direction = "up" | "down" | "left" | "right";
 type TouchState = Record<Direction, boolean>;
@@ -15,7 +15,11 @@ export default function GamePreview({ template, theme = "Fantasy" }: { template:
   }
 
   useEffect(() => {
-    if (!host.current) return;
+    let disposed = false;
+    let game: PhaserTypes.Game | undefined;
+    const start = async () => {
+    const Phaser = (await import("phaser")).default;
+    if (disposed || !host.current) return;
     const themeKey = theme.toLocaleLowerCase();
     const palette = themeKey.includes("space") || themeKey.includes("فضا")
       ? { skyTop: 0x102b50, skyBottom: 0x172b50, far: 0x173b50, near: 0x1c594f, player: 0x168ab5, glow: 0x54d9ed, coin: 0xffb52e, coinLight: 0xffe78a, rock: 0x7c4055, rockLight: 0xe47779, name: "COSMIC" }
@@ -26,8 +30,8 @@ export default function GamePreview({ template, theme = "Fantasy" }: { template:
       : { skyTop: 0x34204f, skyBottom: 0x57345f, far: 0x49315e, near: 0x755078, player: 0x477bd1, glow: 0xa8e8ff, coin: 0xffb52e, coinLight: 0xffe78a, rock: 0x7c4055, rockLight: 0xe47779, name: "FANTASY" };
 
     class Demo extends Phaser.Scene {
-      player!: Phaser.GameObjects.Container;
-      cursors!: Phaser.Types.Input.Keyboard.CursorKeys;
+      player!: PhaserTypes.GameObjects.Container;
+      cursors!: PhaserTypes.Types.Input.Keyboard.CursorKeys;
       coins: Phaser.GameObjects.Container[] = [];
       hazards: Phaser.GameObjects.Container[] = [];
       score = 0;
@@ -169,16 +173,21 @@ export default function GamePreview({ template, theme = "Fantasy" }: { template:
       }
     }
 
-    const game = new Phaser.Game({
+    game = new Phaser.Game({
       type: Phaser.AUTO, width: 320, height: 220, parent: host.current,
       scene: Demo, backgroundColor: "#102b50",
       scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH }
     });
-    return () => {
-      touch.current = { up: false, down: false, left: false, right: false };
-      game.destroy(true);
     };
-  }, [template]);
+    void start().catch(error => {
+      if (!disposed) console.error("VELTRIX preview failed to initialize:", error);
+    });
+    return () => {
+      disposed = true;
+      touch.current = { up: false, down: false, left: false, right: false };
+      game?.destroy(true);
+    };
+  }, [template, theme]);
 
   const control = (direction: Direction, symbol: string, label: string) => (
     <button
