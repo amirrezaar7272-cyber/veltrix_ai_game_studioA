@@ -5,6 +5,7 @@ import type { GameEntity, GameScene } from "../lib/project";
 import { PhysicsWorld } from "../lib/physicsWorld";
 import { sampleAnimation } from "../lib/animation";
 import { executeLogicGraph } from "../lib/visualScript";
+import { drawGameEntity, drawSceneBackground } from "../lib/renderer2d";
 
 type Props = { scene: GameScene; active: boolean; language?: "fa" | "en"; onComplete?: () => void };
 type Input = { up: boolean; down: boolean; left: boolean; right: boolean };
@@ -82,35 +83,6 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       return { x: entity.x, y: entity.y };
     };
 
-    const drawEntity = (entity: GameEntity) => {
-      const p = position(entity);
-      const track = scene.animationTracks?.find(item => item.entityId === entity.id);
-      const pose = track ? sampleAnimation(track, elapsed) : undefined;
-      const ew = pose?.width ?? entity.width, eh = pose?.height ?? entity.height;
-      ctx.save();
-      ctx.globalAlpha = pose?.opacity ?? entity.opacity ?? 1;
-      ctx.translate(p.x + ew / 2, p.y + eh / 2);
-      ctx.rotate((pose?.rotation ?? entity.rotation ?? 0) * Math.PI / 180);
-      ctx.fillStyle = entity.color;
-      if (["collectible", "enemy", "hazard"].includes(entity.kind)) {
-        ctx.beginPath();
-        ctx.ellipse(0, 0, ew / 2, eh / 2, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#ffffff88";
-        ctx.lineWidth = Math.max(2, width / 480);
-        ctx.stroke();
-      } else {
-        ctx.beginPath();
-        ctx.roundRect(-ew / 2, -eh / 2, ew, eh, Math.min(12, eh / 4));
-        ctx.fill();
-        if (entity.kind === "goal") {
-          ctx.strokeStyle = "#d9ffe9"; ctx.lineWidth = 4;
-          ctx.strokeRect(-ew / 2 + 5, -eh / 2 + 5, ew - 10, eh - 10);
-        }
-      }
-      ctx.restore();
-    };
-
     const draw = (time: number) => {
       if (stopped) return;
       const delta = Math.min((time - (last || time)) / 1000, .04);
@@ -150,22 +122,15 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       }
 
       ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = scene.background; ctx.fillRect(0, 0, width, height);
-      ctx.save(); ctx.globalAlpha = .12; ctx.strokeStyle = "#d9efff"; ctx.lineWidth = 1;
-      for (let gx = 0; gx < width; gx += 48) { ctx.beginPath(); ctx.moveTo(gx, 0); ctx.lineTo(gx, height); ctx.stroke(); }
-      for (let gy = 0; gy < height; gy += 48) { ctx.beginPath(); ctx.moveTo(0, gy); ctx.lineTo(width, gy); ctx.stroke(); }
-      ctx.restore();
+      drawSceneBackground(ctx, scene, elapsed);
       for (const entity of entities) {
         if (!entity.visible || entity.kind === "player" || (entity.kind === "collectible" && collected.has(entity.id))) continue;
-        drawEntity(entity);
+        const p = position(entity);
+        const track = scene.animationTracks?.find(item => item.entityId === entity.id);
+        const pose = track ? sampleAnimation(track, elapsed) : undefined;
+        drawGameEntity(ctx, entity, p.x, p.y, elapsed, pose ?? {});
       }
-      ctx.save();
-      ctx.fillStyle = player.color;
-      ctx.beginPath(); ctx.roundRect(x, y, player.width, player.height, 12); ctx.fill();
-      ctx.fillStyle = "#ffffff";
-      ctx.beginPath(); ctx.arc(x + player.width * .32, y + player.height * .38, Math.max(2, player.width * .06), 0, Math.PI * 2); ctx.fill();
-      ctx.beginPath(); ctx.arc(x + player.width * .68, y + player.height * .38, Math.max(2, player.width * .06), 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
+      drawGameEntity(ctx, player, x, y, elapsed);
 
       if (stopped) {
         ctx.fillStyle = "#07111edc"; ctx.fillRect(0, 0, width, height);
