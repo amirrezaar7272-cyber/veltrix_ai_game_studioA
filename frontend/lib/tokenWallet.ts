@@ -39,9 +39,13 @@ export async function redeemWalletCode(rawCode: string): Promise<{ wallet: Walle
   writeWallet(next);
   return { wallet: next, message: amount === null ? "اعتبار نامحدود فعال شد." : amount + " توکن به کیف پول اضافه شد." };
 }
-export function consumeBuildTokens(wallet: WalletState, amount = BUILD_COST): WalletState | null {
+export function deductTokens(wallet: WalletState, amount = BUILD_COST): WalletState | null {
+  if (!Number.isInteger(amount) || amount < 0) return null;
   if (wallet.balance !== null && wallet.balance < amount) return null;
-  const next = wallet.balance === null ? wallet : { ...wallet, balance: wallet.balance - amount };
-  writeWallet(next);
+  return wallet.balance === null ? wallet : { ...wallet, balance: wallet.balance - amount };
+}
+export function consumeBuildTokens(wallet: WalletState, amount = BUILD_COST): WalletState | null {
+  const next = deductTokens(wallet, amount);
+  if (next) writeWallet(next);
   return next;
 }
