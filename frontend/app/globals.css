@@ -46,3 +46,7 @@ footer { margin-top: 70px; color: #66748d; font-size: 12px; }
 .wallet-message { margin:0; color:#8cecff; font-size:12px; }
 .wallet-note { margin:0; }
 @media(max-width:520px) { .wallet-redeem { flex-direction:column; } .wallet-redeem button { width:100%; } }
+
+
+.wallet-tiers { display:flex; flex-wrap:wrap; gap:7px; }
+.wallet-tiers span { padding:6px 10px; border:1px solid #2b4a63; border-radius:99px; color:#a9ddec; background:#0a1b2c; font-size:11px; }
