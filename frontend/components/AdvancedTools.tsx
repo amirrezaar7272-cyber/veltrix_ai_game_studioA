@@ -13,7 +13,7 @@ type Props = {
 };
 type Edge = { from: string; to: string };
 const uid = () => typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : "vx-" + Date.now().toString(36) + Math.random().toString(36).slice(2);
-const nodeKinds: LogicNode["kind"][] = ["collision","collect","goal","move","wait","play-audio","set-visible","set-score"];
+const nodeKinds: LogicNode["kind"][] = ["start","collision","collect","goal","move","wait","play-audio","set-visible","set-score"];
 const ease = (value:number, kind:AnimationKeyframe["easing"]) => kind==="ease-in"?value*value:kind==="ease-out"?1-(1-value)*(1-value):kind==="ease-in-out"?value<.5?2*value*value:1-Math.pow(-2*value+2,2)/2:value;
 
 export default function AdvancedTools({ scene, selected, onPatch, onScenePatch, language, projectName }: Props) {
