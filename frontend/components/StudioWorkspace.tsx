@@ -22,13 +22,13 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
   const [isPlaying, setIsPlaying] = useState(false);
   const [snapToGrid, setSnapToGrid] = useState(true);
   const [zoom, setZoom] = useState(100);
-  const canvasRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLDivElement>(null);\n  const skipFirstAutosave = useRef(true);
   const fileInput = useRef<HTMLInputElement>(null);
   const t = labels[language];
   const scene = useMemo(() => project.scenes.find(item => item.id === project.activeSceneId) || project.scenes[0], [project]);
   const selected = scene?.entities.find(item => item.id === selectedId);
 
-  useEffect(() => { setProjects(loadProjects()); }, []);
+  useEffect(() => { setProjects(loadProjects()); }, []);\n  useEffect(() => {\n    if (skipFirstAutosave.current) { skipFirstAutosave.current = false; return; }\n    const timer = window.setTimeout(() => {\n      try { setProjects(saveProject(project)); setMessage("Auto-saved locally"); }\n      catch (error) { setMessage(error instanceof Error ? error.message : "Auto-save failed"); }\n    }, 900);\n    return () => window.clearTimeout(timer);\n  }, [project]);\n  useEffect(() => {\n    const onKeyDown = (event: KeyboardEvent) => {\n      const target = event.target as HTMLElement | null;\n      if (target && ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName)) return;\n      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "d" && selected) { event.preventDefault(); duplicateEntity(selected); }\n      else if ((event.key === "Delete" || event.key === "Backspace") && selected) { event.preventDefault(); updateScene({ entities: scene.entities.filter(item => item.id !== selected.id) }); setSelectedId(""); }\n      else if (selected && ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(event.key)) {\n        event.preventDefault(); const step = event.shiftKey ? 16 : 1;\n        const dx = event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0;\n        const dy = event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0;\n        updateEntity({ x: Math.max(0, Math.min(scene.width - selected.width, selected.x + dx)), y: Math.max(0, Math.min(scene.height - selected.height, selected.y + dy)) });\n      }\n    };\n    window.addEventListener("keydown", onKeyDown); return () => window.removeEventListener("keydown", onKeyDown);\n  }, [selected, scene, selectedId]);
   useEffect(() => {
     if (!initialDesign) return;
     const next = createProject(initialDesign);
@@ -68,7 +68,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
     const next = createProject();
     setProject(next); setSelectedId(next.scenes[0].entities[0].id); setMessage("");
   }
-  function addScene() {
+  function duplicateScene(item: GameScene) {\n    const copy: GameScene = { ...item, id: "scene-" + Date.now().toString(36), name: item.name + " Copy", entities: item.entities.map(entity => ({ ...entity, id: crypto.randomUUID() })) };\n    setProject(current => ({ ...current, activeSceneId: copy.id, scenes: [...current.scenes, copy] })); setSelectedId("");\n  }\n  function removeScene(item: GameScene) {\n    if (project.scenes.length <= 1) { setMessage("A project must contain at least one scene."); return; }\n    if (!window.confirm("Delete scene \"" + item.name + "\"?")) return;\n    const remaining = project.scenes.filter(sceneItem => sceneItem.id !== item.id);\n    setProject(current => ({ ...current, scenes: remaining, activeSceneId: item.id === current.activeSceneId ? remaining[0].id : current.activeSceneId })); setSelectedId("");\n  }\n  function reorderEntity(id: string, direction: -1 | 1) {\n    const index = scene.entities.findIndex(item => item.id === id), nextIndex = index + direction;\n    if (index < 0 || nextIndex < 0 || nextIndex >= scene.entities.length) return;\n    const next = [...scene.entities]; [next[index], next[nextIndex]] = [next[nextIndex], next[index]]; updateScene({ entities: next });\n  }\n  function addScene() {
     const next: GameScene = { id: "scene-" + Date.now().toString(36), name: "Scene " + (project.scenes.length + 1), width: 960, height: 540, background: "#18243b", entities: [] };
     setProject(current => ({ ...current, activeSceneId: next.id, scenes: [...current.scenes, next] }));
     setSelectedId("");
@@ -127,8 +127,8 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
         <label className="studio-field">{t.addObject}<select value="" onChange={e => { if (e.target.value) addObject(e.target.value as EntityKind); }}><option value="">＋ Choose type</option>{kinds.map(kind => <option key={kind} value={kind}>{kind}</option>)}</select></label>
       </aside>
       <div className="studio-main">
-        <label className="studio-field">{t.name}<input value={project.name} maxLength={80} onChange={e => setProject(p => ({ ...p, name: e.target.value }))} /></label>
-        <div className="studio-scene-tabs">{project.scenes.map(item => <button key={item.id} className={item.id === scene.id ? "active" : "studio-quiet"} onClick={() => { setProject(p => ({ ...p, activeSceneId: item.id })); setSelectedId(""); }}>{item.name}</button>)}<button className="studio-quiet" onClick={addScene}>＋ {t.addScene}</button></div>
+        <label className="studio-field">{t.name}<input value={project.name} maxLength={80} onChange={e => setProject(p => ({ ...p, name: e.target.value }))} /></label>\n        <label className="studio-field">Project description<textarea value={project.description} maxLength={500} onChange={e => setProject(p => ({ ...p, description: e.target.value }))} rows={2} /></label>
+        <div className="studio-scene-tabs">{project.scenes.map(item => <div className="studio-scene-tab" key={item.id}><button className={item.id === scene.id ? "active" : "studio-quiet"} onClick={() => { setProject(p => ({ ...p, activeSceneId: item.id })); setSelectedId(""); }}>{item.name}</button><button className="studio-tab-action" title="Duplicate scene" onClick={() => duplicateScene(item)}>⧉</button><button className="studio-tab-action" title="Delete scene" onClick={() => removeScene(item)}>×</button></div>)}<button className="studio-quiet" onClick={addScene}>＋ {t.addScene}</button></div>
         <div ref={canvasRef} className="studio-canvas" style={{ aspectRatio: scene.width + " / " + scene.height, background: scene.background, transform: "scale(" + (zoom / 100) + ")", transformOrigin: "top center" }}>
           <div className="studio-canvas-grid" />
           {scene.entities.filter(entity => entity.visible).map(entity => <button key={entity.id} aria-label={entity.name} onPointerDown={event => { event.preventDefault(); setSelectedId(entity.id); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (event.buttons === 1) moveEntity(entity.id, event.clientX, event.clientY); }} onClick={() => setSelectedId(entity.id)} className={"studio-canvas-entity " + (entity.id === selectedId ? "selected" : "")} style={{ left: ((entity.x + entity.width / 2) / scene.width * 100) + "%", top: ((entity.y + entity.height / 2) / scene.height * 100) + "%", width: (entity.width / scene.width * 100) + "%", height: (entity.height / scene.height * 100) + "%", background: entity.color, opacity: entity.opacity ?? 1, transform: "translate(-50%,-50%) rotate(" + (entity.rotation || 0) + "deg)", borderRadius: ["collectible", "enemy", "hazard"].includes(entity.kind) ? "50%" : "7px" }}><span>{entity.name}</span></button>)}
@@ -155,13 +155,13 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
           <label className="studio-field">Movement speed<input type="number" min="0" max="1000" value={selected.speed ?? 0} onChange={e => updateEntity({ speed: Math.max(0, Math.min(1000, Number(e.target.value) || 0)) })} /></label>
           <label className="studio-field">Rotation<input type="number" min="-360" max="360" value={selected.rotation ?? 0} onChange={e => updateEntity({ rotation: Math.max(-360, Math.min(360, Number(e.target.value) || 0)) })} /></label>
           <label className="studio-field">Opacity<input type="range" min="0" max="1" step=".05" value={selected.opacity ?? 1} onChange={e => updateEntity({ opacity: Number(e.target.value) })} /></label>
-          <button className="studio-quiet" onClick={() => duplicateEntity(selected)}>Duplicate object</button>
+          <div className="studio-layer-actions"><button className="studio-quiet" onClick={() => duplicateEntity(selected)}>Duplicate object (Ctrl+D)</button><button className="studio-quiet" onClick={() => reorderEntity(selected.id, -1)}>Layer ↑</button><button className="studio-quiet" onClick={() => reorderEntity(selected.id, 1)}>Layer ↓</button></div>
           <label className="studio-check"><input type="checkbox" checked={selected.visible} onChange={e => updateEntity({ visible: e.target.checked })} />{t.visible}</label>
           <button className="studio-danger" onClick={() => { updateScene({ entities: scene.entities.filter(item => item.id !== selected.id) }); setSelectedId(""); }}>{t.delete}</button>
         </>}
         <button className="studio-danger studio-delete-project" onClick={removeCurrent}>Delete saved project</button>
       </aside>
     </div>
-    <p className="studio-footnote">Project data stays in this browser until you export it. Scene editing is an early editor foundation; playable export and APK packaging are not implemented yet.</p>
+    <p className="studio-footnote">Auto-save is enabled · Drag objects · Arrows move selected object · Shift + arrows moves 16px · Delete removes · Ctrl+D duplicates. Export backups regularly; playable build export and APK packaging are not implemented yet.</p>
   </section>;
 }
