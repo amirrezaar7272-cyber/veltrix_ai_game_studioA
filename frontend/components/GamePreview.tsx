@@ -28,6 +28,10 @@ export default function GamePreview({ template }: { template: string }) {
       overlay?: Phaser.GameObjects.Container;
 
       create() {
+        const sparkTexture = this.make.graphics({ x: 0, y: 0 });
+        sparkTexture.fillStyle(0xffffff, 1).fillCircle(4, 4, 4);
+        sparkTexture.generateTexture("spark", 8, 8);
+        sparkTexture.destroy();
         const sky = this.add.graphics();
         sky.fillGradientStyle(0x102b50, 0x102b50, 0x254b70, 0x172b50, 1);
         sky.fillRect(0, 0, 320, 220);
