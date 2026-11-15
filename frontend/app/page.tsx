@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import GamePreview from "../components/GamePreview";
-import { getDeviceProfile, thinkLocally, thinkWithModel, type BrainProgress } from "../lib/localBrain";
+import { getDeviceProfile, thinkLocally, thinkWithModel, type BrainProgress, type DeviceProfile } from "../lib/localBrain";
 
 type Result = {
   template: string; title: string; description: string; objective: string;
@@ -17,7 +17,8 @@ export default function Home() {
   const [busy, setBusy] = useState(false);
   const [progress, setProgress] = useState<BrainProgress>({ progress: 0, text: "" });
   const [modelError, setModelError] = useState("");
-  const deviceProfile = getDeviceProfile();
+  const [deviceProfile, setDeviceProfile] = useState<DeviceProfile>({ mode: "light", reason: "Checking device capabilities..." });
+  useEffect(() => { setDeviceProfile(getDeviceProfile()); }, []);
 
   async function generate() {
     if (!prompt.trim()) return;
