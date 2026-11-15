@@ -117,7 +117,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       last = time; elapsed += delta;
       const jumpPressed = input.current.up && !jumpWasDown;
       jumpWasDown = input.current.up;
-      const contacts = physics.step(entities, delta, { left: input.current.left, right: input.current.right, jumpPressed }, player.id);
+      const contacts = physics.step(entities, delta, { up: input.current.up, down: input.current.down, left: input.current.left, right: input.current.right, jumpPressed }, player.id);
       const currentSensors = new Set<string>();
       for (const contact of contacts.filter(item => item.sensor)) {
         const otherId = contact.a === player.id ? contact.b : contact.a;
