@@ -1,4 +1,5 @@
-export type EntityKind = "player" | "enemy" | "collectible" | "platform" | "decoration";
+export type EntityKind = "player" | "enemy" | "collectible" | "platform" | "decoration" | "hazard" | "goal" | "npc";
+export type EntityBehavior = "static" | "patrol" | "float" | "chase";
 export type GameEntity = {
   id: string;
   name: string;
@@ -84,24 +85,24 @@ export function validateProject(value: unknown): value is GameProject {
       typeof scene.background === "string" && Array.isArray(scene.entities) && scene.entities.length <= 1000 &&
       scene.entities.every(entity => entity && typeof entity.id === "string" &&
         typeof entity.name === "string" &&
-        ["player", "enemy", "collectible", "platform", "decoration"].includes(entity.kind) &&
+        ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc"].includes(entity.kind) &&
         [entity.x, entity.y, entity.width, entity.height].every(Number.isFinite) &&
         entity.width > 0 && entity.height > 0 && typeof entity.color === "string" &&
-        typeof entity.visible === "boolean"))) return false;
+        typeof entity.visible === "boolean" &&\n        (entity.behavior === undefined || ["static", "patrol", "float", "chase"].includes(entity.behavior)) &&\n        (entity.speed === undefined || (Number.isFinite(entity.speed) && entity.speed >= 0 && entity.speed <= 1000)) &&\n        (entity.rotation === undefined || Number.isFinite(entity.rotation)) &&\n        (entity.opacity === undefined || (Number.isFinite(entity.opacity) && entity.opacity >= 0 && entity.opacity <= 1)))) return false;
   return p.scenes.some(scene => scene.id === p.activeSceneId);
 }
 
 export function createEntity(kind: EntityKind, index: number): GameEntity {
   const colors: Record<EntityKind, string> = {
     player: "#56d8ee", enemy: "#e47779", collectible: "#ffc857",
-    platform: "#6485b7", decoration: "#a78bfa"
+    platform: "#6485b7", decoration: "#a78bfa", hazard: "#ff5b67", goal: "#53e0a2", npc: "#f0a6ff"
   };
   const sizes: Record<EntityKind, [number, number]> = {
     player: [42, 52], enemy: [46, 46], collectible: [28, 28],
-    platform: [180, 24], decoration: [36, 36]
+    platform: [180, 24], decoration: [36, 36], hazard: [42, 42], goal: [48, 64], npc: [42, 52]
   };
   const [width, height] = sizes[kind];
   return { id: makeId(), name: kind[0].toUpperCase() + kind.slice(1) + " " + (index + 1),
     kind, x: 120 + (index % 5) * 90, y: 140 + (index % 3) * 70,
-    width, height, color: colors[kind], visible: true };
+    width, height, color: colors[kind], visible: true, behavior: kind === "enemy" ? "patrol" : kind === "decoration" ? "float" : "static", speed: kind === "enemy" ? 90 : 30, rotation: 0, opacity: 1 };
 }
