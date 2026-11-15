@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { AnimationKeyframe, AnimationTrack, AudioAsset, GameEntity, GameScene, LogicNode } from "../lib/project";
 
 type Props = {
@@ -11,7 +11,6 @@ type Props = {
   language: "fa" | "en";
   projectName: string;
 };
-type Edge = { from: string; to: string };
 const uid = () => typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : "vx-" + Date.now().toString(36) + Math.random().toString(36).slice(2);
 const nodeKinds: LogicNode["kind"][] = ["start","collision","collect","goal","move","wait","play-audio","set-visible","set-score"];
 const ease = (value:number, kind:AnimationKeyframe["easing"]) => kind==="ease-in"?value*value:kind==="ease-out"?1-(1-value)*(1-value):kind==="ease-in-out"?value<.5?2*value*value:1-Math.pow(-2*value+2,2)/2:value;
@@ -84,7 +83,7 @@ export default function AdvancedTools({ scene, selected, onPatch, onScenePatch, 
     </>}</div>}
     {tab==="animation"&&<div className="vx-tool-panel"><h4>{fa?"انیمیشن فریم کلیدی":"Keyframe animation"}</h4>
       {!selected?<p>{fa?"یک شیء انتخاب کن.":"Select an entity."}</p>:<>
-      <label>{fa?"نام ترک":"Track name"}<input value={track?.name??selected.name+" animation"} onChange={e=>patchTrack({...track??{id:uid(),entityId:selected.id,name:e.target.value,duration,loop:false,keyframes:[]},name:e.target.value})}/></label>
+      <label>{fa?"نام ترک":"Track name"}<input value={track?.name??selected.name+" animation"} onChange={e=>{const current=track??{id:uid(),entityId:selected.id,name:e.target.value,duration,loop:false,keyframes:[]};patchTrack({...current,name:e.target.value});}}/></label>
       <label>{fa?"مدت (ثانیه)":"Duration (seconds)"}<input type="number" min=".1" max="600" step=".1" value={track?.duration??duration} onChange={e=>{const d=Math.max(.1,Math.min(600,Number(e.target.value)||3));setDuration(d);if(track)patchTrack({...track,duration:d,keyframes:track.keyframes.map(k=>({...k,time:Math.min(d,k.time)}))});}}/></label>
       <label className="vx-inline-check"><input type="checkbox" checked={track?.loop??false} onChange={e=>track&&patchTrack({...track,loop:e.target.checked})}/>{fa?"تکرار حلقه‌ای":"Loop"}</label>
       <label>{fa?"موقعیت پخش":"Playhead"}<input type="range" min="0" max={track?.duration??duration} step=".01" value={Math.min(playhead,track?.duration??duration)} onChange={e=>setPlayhead(Number(e.target.value))}/><span>{playhead.toFixed(2)}s</span></label>
@@ -92,7 +91,7 @@ export default function AdvancedTools({ scene, selected, onPatch, onScenePatch, 
       <div className="vx-timeline-ruler">{keys.map(k=><button key={k.id} title={k.time+"s"} onClick={()=>{setPlayhead(k.time);onPatch({x:k.x,y:k.y,width:k.width,height:k.height,rotation:k.rotation,opacity:k.opacity});}}>◆ {k.time.toFixed(2)}s</button>)}</div>
       {keys.map(k=><div className="vx-keyframe" key={k.id}><span>{k.time.toFixed(2)}s</span><label>{fa?"زمان":"Time"}<input type="number" min="0" max={track?.duration??duration} step=".01" value={k.time} onChange={e=>updateKey(k,{time:Math.max(0,Math.min(track?.duration??duration,Number(e.target.value)||0))})}/></label><select value={k.easing} onChange={e=>updateKey(k,{easing:e.target.value as AnimationKeyframe["easing"]})}><option value="linear">Linear</option><option value="ease-in">Ease in</option><option value="ease-out">Ease out</option><option value="ease-in-out">Ease in/out</option></select><button onClick={()=>removeKey(k.id)}>×</button></div>)}
       </>}</div>}
-    {tab==="audio"&&<div className="vx-tool-panel"><h4>{fa?"کتابخانه صوتی پروژه":"Project audio library"}</h4><input type="file" accept="audio/*" onChange={e=>addAudio(e.target.files?.[0])}/><audio ref={audioRef} controls/><p className="vx-tool-hint">{fa?"فایل صوتی حداکثر ۸ مگابایت در پروژه جاسازی می‌شود.":"Audio files up to 8 MB are embedded in the project file."}</p>
+    {tab==="audio"&&<div className="vx-tool-panel"><h4>{fa?"کتابخانه صوتی پروژه":"Project audio library"}</h4><input type="file" accept="audio/*" onChange={e=>addAudio(e.target.files?.[0])}/><audio ref={audioRef} controls/><p className="vx-tool-hint">{fa?"فایل صوتی حداکثر ۱ مگابایت در پروژه جاسازی می‌شود.":"Audio files up to 1 MB are embedded in the project file."}</p>
       {assets.map(asset=><div className="vx-keyframe" key={asset.id}><strong>{asset.name}</strong><select value={asset.mode} onChange={e=>onScenePatch({audioAssets:assets.map(a=>a.id===asset.id?{...a,mode:e.target.value as AudioAsset["mode"],loop:e.target.value==="music"}:a)})}><option value="effect">Effect</option><option value="music">Music</option></select><label>{fa?"بلندی":"Volume"}<input type="range" min="0" max="1" step=".05" value={asset.volume} onChange={e=>onScenePatch({audioAssets:assets.map(a=>a.id===asset.id?{...a,volume:Number(e.target.value)}:a)})}/></label><button onClick={()=>playAudio(asset)}>{fa?"پخش":"Play"}</button><button onClick={()=>onScenePatch({audioAssets:assets.filter(a=>a.id!==asset.id)})}>×</button></div>)}
       {audioStatus&&<p role="status">{audioStatus}</p>}</div>}
     {tab==="visual"&&<div className="vx-tool-panel"><h4>{fa?"گراف منطق اجرایی":"Executable visual logic graph"}</h4>
