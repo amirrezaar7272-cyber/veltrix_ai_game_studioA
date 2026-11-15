@@ -16,6 +16,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
   const input = useRef<Input>({ up: false, down: false, left: false, right: false, interact: false });
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
+  const [isDriving, setIsDriving] = useState(false);
   const [status, setStatus] = useState<"playing" | "won" | "lost" | "missing-player">("playing");
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
@@ -97,13 +98,13 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       if (interactPressed) {
         if (drivingVehicleId) {
           const currentVehicle = entities.find(item => item.id === drivingVehicleId);
-          if (currentVehicle) { x = currentVehicle.x + currentVehicle.width + 6; y = currentVehicle.y; }
-          drivingVehicleId = null;
+          if (currentVehicle) { x = currentVehicle.x + currentVehicle.width + 6; y = currentVehicle.y; physics.bodies.get(player.id)!.x=x; physics.bodies.get(player.id)!.y=y; }
+          drivingVehicleId = null; setIsDriving(false);
         } else {
           const nearest = entities.filter(item => item.kind === "vehicle" && item.visible)
             .map(item => ({ item, distance: Math.hypot((item.x + item.width/2) - (x + player.width/2), (item.y + item.height/2) - (y + player.height/2)) }))
             .sort((a,b) => a.distance-b.distance)[0];
-          if (nearest && nearest.distance < 105) drivingVehicleId = nearest.item.id;
+          if (nearest && nearest.distance < 105) { drivingVehicleId = nearest.item.id; setIsDriving(true); }
         }
       }
       const contacts = physics.step(entities, delta, { up: input.current.up, down: input.current.down, left: input.current.left, right: input.current.right, jumpPressed }, player.id);
@@ -193,7 +194,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
   function press(key: keyof Input, value: boolean) { input.current[key] = value; }
   return <div className="studio-runner">
     <div className="studio-runner-bar"><strong>{language === "fa" ? "اجرای زنده صحنه" : "LIVE SCENE"}</strong><span>{language === "fa" ? "امتیاز" : "Score"}: {score}</span><span>{language === "fa" ? "جان" : "Lives"}: {lives}</span>
-      {drivingVehicleId && <span>{language === "fa" ? "در حال رانندگی" : "DRIVING"}</span>}
+      {isDriving && <span>{language === "fa" ? "در حال رانندگی" : "DRIVING"}</span>}
       {status === "won" && <span>{language === "fa" ? "مرحله کامل شد" : "Level complete"}</span>}
       {status === "lost" && <span>{language === "fa" ? "بازی تمام شد" : "Game over"}</span>}
       {status === "missing-player" && <span>{language === "fa" ? "برای اجرای صحنه یک شخصیت بازیکن اضافه کن" : "Add a player object to run this scene"}</span>}
