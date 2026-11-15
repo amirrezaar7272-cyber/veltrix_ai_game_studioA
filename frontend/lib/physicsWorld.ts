@@ -41,7 +41,8 @@ export class PhysicsWorld {
         const speed = e.speed ?? 180;
         const target = ((input.right?1:0)-(input.left?1:0))*speed;
         const friction = clamp(e.friction ?? .18,0,1);
-        body.vx += (target-body.vx)*clamp((target===0?friction*12:18)*dt,0,1);
+        const mass = Math.max(.1,e.mass ?? 1);
+        body.vx += (target-body.vx)*clamp(((target===0?friction*12:18)/mass)*dt,0,1);
         if ((e.gravityScale ?? 1) <= 0) {
           const targetY = ((input.down?1:0)-(input.up?1:0))*speed;
           body.vy += (targetY-body.vy)*clamp((targetY===0?friction*12:18)*dt,0,1);
