@@ -24,7 +24,7 @@ export type GameEntity = {
 export type AnimationKeyframe = { id: string; time: number; x: number; y: number; width: number; height: number; rotation: number; opacity: number; easing: "linear" | "ease-in" | "ease-out" | "ease-in-out" };
 export type AnimationTrack = { id: string; entityId: string; name: string; duration: number; loop: boolean; keyframes: AnimationKeyframe[] };
 export type AudioAsset = { id: string; name: string; dataUrl: string; mode: "music" | "effect"; volume: number; loop: boolean };
-export type LogicNode = { id: string; kind: "start" | "collision" | "collect" | "move" | "wait" | "play-audio" | "set-visible" | "set-score"; entityId?: string; value?: number; audioId?: string };
+export type LogicNode = { id: string; kind: "start" | "collision" | "collect" | "goal" | "move" | "wait" | "play-audio" | "set-visible" | "set-score"; entityId?: string; value?: number; audioId?: string };
 export type LogicEdge = { from: string; to: string };
 export type GameScene = {
   id: string;
@@ -133,7 +133,7 @@ export function validateProject(value: unknown): value is GameProject {
           typeof asset.dataUrl === "string" && asset.dataUrl.length <= 12000000 && asset.dataUrl.startsWith("data:audio/") &&
           ["music","effect"].includes(asset.mode) && Number.isFinite(asset.volume) && asset.volume >= 0 && asset.volume <= 1 && typeof asset.loop === "boolean"))) &&
       (scene.logicNodes === undefined || (Array.isArray(scene.logicNodes) && scene.logicNodes.length <= 500 &&
-        scene.logicNodes.every(node => node && typeof node.id === "string" && ["start","collision","collect","move","wait","play-audio","set-visible","set-score"].includes(node.kind) &&
+        scene.logicNodes.every(node => node && typeof node.id === "string" && ["start","collision","collect","goal","move","wait","play-audio","set-visible","set-score"].includes(node.kind) &&
           (node.entityId === undefined || typeof node.entityId === "string") && (node.value === undefined || Number.isFinite(node.value)) &&
           (node.audioId === undefined || typeof node.audioId === "string")))) &&
       (scene.logicEdges === undefined || (Array.isArray(scene.logicEdges) && scene.logicEdges.length <= 2000 &&
