@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import GamePreview from "../components/GamePreview";
-import { thinkLocally } from "../lib/localBrain";
+import { thinkLocally, thinkWithModel, type BrainProgress } from "../lib/localBrain";
 
 type Result = {
   template: string; title: string; description: string; objective: string;
@@ -15,39 +15,40 @@ export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState<Result | null>(null);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState<BrainProgress>({ progress: 0, text: "" });
+  const [modelError, setModelError] = useState("");
 
   async function generate() {
     if (!prompt.trim()) return;
-    setBusy(true); setResult(null);
+    setBusy(true); setResult(null); setModelError("");
+    setProgress({ progress: 0, text: "Preparing the on-device brain..." });
     try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (!apiUrl) throw new Error("Local mode");
-      const response = await fetch(`${apiUrl.replace(/\/$/, "")}/generate`, {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt, language: /[\u0600-\u06FF]/.test(prompt) ? "fa" : "en" })
-      });
-      if (!response.ok) throw new Error("API unavailable");
-      setResult(await response.json());
-    } catch {
-      // Offline-first fallback: the first VELTRIX brain runs in this browser.
+      setResult(await thinkWithModel(prompt, setProgress));
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Local model unavailable";
+      setModelError(message);
       setResult(thinkLocally(prompt));
-    } finally {
-      setBusy(false);
-    }
+    } finally { setBusy(false); }
   }
 
   return <main className="shell">
     <header><div className="brand">VELTRIX <span>AI</span></div><div className="tag">BEYOND INTELLIGENCE</div></header>
     <section className="hero">
-      <p className="eyebrow">AI GAME STUDIO · LOCAL BRAIN 1.0</p>
-      <h1>Turn your idea into a game.</h1>
-      <p className="sub">Describe a 2D game in English or فارسی. VELTRIX can create a starter design right on this device — no API key or server required.</p>
-      <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="مثلاً: یک بازی بساز که ربات سکه جمع کند..." />
-      <button onClick={generate} disabled={busy || !prompt.trim()}>{busy ? "Thinking..." : "Generate game"}</button>
+      <p className="eyebrow">AI GAME STUDIO · PRIVATE LOCAL BRAIN 2.0</p>
+      <h1>Ideas become games. On your device.</h1>
+      <p className="sub">Describe a 2D game in Persian or English. VELTRIX runs its language model in your browser — no AI API, no API key and no paid server. The model is downloaded once and cached on this device.</p>
+      <div className="model-info">
+        <strong>LOCAL MODEL · QWEN 2.5 · 0.5B</strong>
+        <span>First setup needs internet and about 1 GB of free storage. WebGPU is required. Availability depends on your device and browser.</span>
+      </div>
+      <textarea value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="مثلاً: یک بازی فضایی بساز که ربات از شهاب‌سنگ‌ها فرار کند و کریستال جمع کند..." />
+      <button onClick={generate} disabled={busy || !prompt.trim()}>{busy ? "Loading local brain..." : "Generate with local AI"}</button>
+      {busy && <div className="progress"><div className="progress-track"><div className="progress-fill" style={{ width: progress.progress + "%" }} /></div><small>{progress.text} {progress.progress > 0 ? progress.progress + "%" : ""}</small></div>}
+      {modelError && <p className="model-warning">مدل زبانی اجرا نشد؛ حالت پایه فعال شد. {modelError}</p>}
     </section>
     {result && <section className="result">
       <div>
-        <p className="eyebrow">{result.generation_mode === "ai" ? "AI GENERATED DESIGN" : result.generation_mode === "local_brain" ? "VELTRIX LOCAL BRAIN" : "TEMPLATE PREVIEW"}</p>
+        <p className="eyebrow">VELTRIX ON-DEVICE BRAIN</p>
         <h2>{result.title}</h2><p>{result.description}</p>
         <p><strong>Objective:</strong> {result.objective}</p>
         <p><strong>Difficulty:</strong> {result.difficulty} · <strong>Theme:</strong> {result.theme}</p>
@@ -55,6 +56,6 @@ export default function Home() {
       </div>
       <GamePreview template={result.template} />
     </section>}
-    <footer>VELTRIX AI · BEYOND INTELLIGENCE</footer>
+    <footer>VELTRIX AI · BEYOND INTELLIGENCE · YOUR PROMPTS STAY ON THIS DEVICE</footer>
   </main>;
 }
