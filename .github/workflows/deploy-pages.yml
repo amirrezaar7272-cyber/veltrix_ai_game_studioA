@@ -30,6 +30,11 @@ jobs:
       - name: Install dependencies
         working-directory: frontend
         run: npm install
+      - name: Apply non-breaking security updates and audit dependencies
+        working-directory: frontend
+        run: |
+          npm audit fix
+          npm audit --audit-level=moderate
       - name: Type check
         working-directory: frontend
         run: npx tsc --noEmit
@@ -43,6 +48,8 @@ jobs:
         run: npm run build
       - name: Configure Pages
         uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
