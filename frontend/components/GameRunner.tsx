@@ -6,6 +6,7 @@ import { PhysicsWorld } from "../lib/physicsWorld";
 import { sampleAnimation } from "../lib/animation";
 import { executeLogicGraph } from "../lib/visualScript";
 import { drawGameEntity, drawSceneBackground } from "../lib/renderer2d";
+import { ParticleSystem } from "../lib/particles";
 
 type Props = { scene: GameScene; active: boolean; language?: "fa" | "en"; onComplete?: () => void };
 type Input = { up: boolean; down: boolean; left: boolean; right: boolean };
@@ -32,6 +33,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     if (!player) { setStatus("missing-player"); return; }
 
     const collected = new Set<string>();
+    const particles = new ParticleSystem();
     let points = 0, health = 3;
     const runtimeScene = { ...scene, entities };
     const audioPlayers = new Map<string, HTMLAudioElement>();
@@ -103,6 +105,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
         const p = position(item);
         if (hit(x, y, player.width, player.height, p.x, p.y, item.width, item.height)) {
           collected.add(item.id); points += 10; setScore(points);
+          particles.emit(p.x + item.width / 2, p.y + item.height / 2, 24, item.color, 190);
           executeLogicGraph(runtimeScene, "collect", item.id, { playAudio, addScore: value => { points += value; setScore(points); } });
         }
       }
@@ -116,11 +119,13 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
         const p = position(danger);
         if (elapsed >= invulnerableUntil && hit(x, y, player.width, player.height, p.x, p.y, danger.width, danger.height)) {
           health -= 1; setLives(health); invulnerableUntil = elapsed + 1.1; x = player.x; y = player.y;
+          particles.emit(x + player.width / 2, y + player.height / 2, 32, "#ff657a", 230);
           executeLogicGraph(runtimeScene, "collision", danger.id, { playAudio, addScore: value => { points += value; setScore(points); } });
           if (health <= 0) { stopped = true; finalStatus = "lost"; setStatus("lost"); }
         }
       }
 
+      particles.update(delta);
       ctx.clearRect(0, 0, width, height);
       drawSceneBackground(ctx, scene, elapsed);
       for (const entity of entities) {
@@ -131,6 +136,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
         drawGameEntity(ctx, entity, p.x, p.y, elapsed, pose ?? {});
       }
       drawGameEntity(ctx, player, x, y, elapsed);
+      particles.draw(ctx);
 
       if (stopped) {
         ctx.fillStyle = "#07111edc"; ctx.fillRect(0, 0, width, height);
