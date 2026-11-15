@@ -73,6 +73,7 @@ export function createProject(design: NewDesign = {}): GameProject {
         ...(isDodge
           ? [{ id: makeId(), name: "Meteor", kind: "enemy" as const, x: 620, y: 170, width: 46, height: 46, color: "#e47779", visible: true, behavior: "patrol" as const, speed: 90, rotation: 0, opacity: 1 }]
           : [{ id: makeId(), name: "Crystal", kind: "collectible" as const, x: 420, y: 240, width: 28, height: 28, color: "#ffc857", visible: true, behavior: "float" as const, speed: 30, rotation: 0, opacity: 1 }])
+        ,{ id: makeId(), name: "Exit Portal", kind: "goal", x: 850, y: 420, width: 48, height: 64, color: "#53e0a2", visible: true, behavior: "static", speed: 0, rotation: 0, opacity: 1 }
       ]
     }]
   };
