@@ -92,7 +92,7 @@ export function createProject(design: NewDesign = {}): GameProject {
         { id: makeId(), name: "Northeast Market", kind: "building", x: 716, y: 42, width: 205, height: 132, color: "#8b705c", visible: true, bodyType: "static" },
         { id: makeId(), name: "Southwest Office", kind: "building", x: 38, y: 365, width: 205, height: 132, color: "#5e7188", visible: true, bodyType: "static" },
         { id: makeId(), name: "South Park Pavilion", kind: "building", x: 716, y: 365, width: 205, height: 132, color: "#6a8069", visible: true, bodyType: "static" },
-        { id: makeId(), name: "Taxi", kind: "vehicle", x: 420, y: 205, width: 58, height: 30, color: "#e9c84b", visible: true, bodyType: "static" },
+        { id: makeId(), name: "Taxi", kind: "vehicle", x: 450, y: 370, width: 58, height: 30, color: "#e9c84b", visible: true, bodyType: "static" },
         { id: makeId(), name: "City Bus", kind: "vehicle", x: 575, y: 305, width: 78, height: 34, color: "#4d9cce", visible: true, bodyType: "static" },
         { id: makeId(), name: "Resident", kind: "npc", x: 325, y: 270, width: 30, height: 42, color: "#e9a6d2", visible: true, behavior: "patrol", speed: 24 },
         { id: makeId(), name: "Courier", kind: "npc", x: 635, y: 420, width: 30, height: 42, color: "#e7a56a", visible: true, behavior: "patrol", speed: 32 },
