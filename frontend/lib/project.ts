@@ -1,4 +1,4 @@
-export type EntityKind = "player" | "enemy" | "collectible" | "platform" | "decoration" | "hazard" | "goal" | "npc";
+export type EntityKind = "player" | "enemy" | "collectible" | "platform" | "decoration" | "hazard" | "goal" | "npc" | "building" | "vehicle";
 export type EntityBehavior = "static" | "patrol" | "float" | "chase";
 export type GameEntity = {
   id: string;
@@ -32,6 +32,7 @@ export type GameScene = {
   width: number;
   height: number;
   background: string;
+  environment?: "city" | "standard";
   entities: GameEntity[];
   animationTracks?: AnimationTrack[];
   audioAssets?: AudioAsset[];
@@ -60,7 +61,7 @@ const palettes: Record<string, string> = {
   space: "#142b50", "فضایی": "#142b50",
   forest: "#244d3c", "جنگلی": "#244d3c",
   cyber: "#251342", "سایبر": "#251342",
-  fantasy: "#49315e", "فانتزی": "#49315e"
+  fantasy: "#49315e", "فانتزی": "#49315e", city: "#172b38", "شهری": "#172b38"
 };
 const makeId = () => typeof crypto !== "undefined" && "randomUUID" in crypto
   ? crypto.randomUUID()
@@ -72,6 +73,7 @@ export function createProject(design: NewDesign = {}): GameProject {
   const background = Object.entries(palettes).find(([key]) => theme.includes(key))?.[1] || "#18243b";
   const sceneId = makeId();
   const isDodge = design.template === "dodge";
+  const isCity = design.template === "city" || theme.includes("city") || theme.includes("شهری");
   return {
     schemaVersion: 1,
     id: makeId(),
@@ -82,8 +84,21 @@ export function createProject(design: NewDesign = {}): GameProject {
     updatedAt: now,
     activeSceneId: sceneId,
     scenes: [{
-      id: sceneId, name: "Main Scene", width: 960, height: 540, background,
-      entities: [
+      id: sceneId, name: isCity ? "City District" : "Main Scene", width: 960, height: 540, background,
+      environment: isCity ? "city" : "standard",
+      entities: isCity ? [
+        { id: makeId(), name: "Player", kind: "player", x: 455, y: 425, width: 34, height: 48, color: "#45d9ef", visible: true, behavior: "static", speed: 155, rotation: 0, opacity: 1, gravityScale: 0 },
+        { id: makeId(), name: "Northwest Apartments", kind: "building", x: 38, y: 42, width: 205, height: 132, color: "#62758b", visible: true, bodyType: "static" },
+        { id: makeId(), name: "Northeast Market", kind: "building", x: 716, y: 42, width: 205, height: 132, color: "#8b705c", visible: true, bodyType: "static" },
+        { id: makeId(), name: "Southwest Office", kind: "building", x: 38, y: 365, width: 205, height: 132, color: "#5e7188", visible: true, bodyType: "static" },
+        { id: makeId(), name: "South Park Pavilion", kind: "building", x: 716, y: 365, width: 205, height: 132, color: "#6a8069", visible: true, bodyType: "static" },
+        { id: makeId(), name: "Taxi", kind: "vehicle", x: 420, y: 205, width: 58, height: 30, color: "#e9c84b", visible: true, bodyType: "static" },
+        { id: makeId(), name: "City Bus", kind: "vehicle", x: 575, y: 305, width: 78, height: 34, color: "#4d9cce", visible: true, bodyType: "static" },
+        { id: makeId(), name: "Resident", kind: "npc", x: 325, y: 270, width: 30, height: 42, color: "#e9a6d2", visible: true, behavior: "patrol", speed: 24 },
+        { id: makeId(), name: "Courier", kind: "npc", x: 635, y: 420, width: 30, height: 42, color: "#e7a56a", visible: true, behavior: "patrol", speed: 32 },
+        { id: makeId(), name: "City Token", kind: "collectible", x: 500, y: 275, width: 25, height: 25, color: "#ffd45a", visible: true, behavior: "float", speed: 22 },
+        { id: makeId(), name: "Mission Marker", kind: "goal", x: 855, y: 250, width: 42, height: 54, color: "#53e0a2", visible: true, behavior: "static", speed: 0 }
+      ] : [
         { id: makeId(), name: "Player", kind: "player", x: 150, y: 390, width: 42, height: 52, color: "#56d8ee", visible: true, behavior: "static", speed: 180, rotation: 0, opacity: 1 },
         ...(isDodge
           ? [{ id: makeId(), name: "Meteor", kind: "enemy" as const, x: 620, y: 170, width: 46, height: 46, color: "#e47779", visible: true, behavior: "patrol" as const, speed: 90, rotation: 0, opacity: 1 }]
@@ -106,7 +121,7 @@ export function validateProject(value: unknown): value is GameProject {
       /^#[0-9a-fA-F]{6}$/.test(scene.background) && Array.isArray(scene.entities) && scene.entities.length <= 1000 &&
       scene.entities.every(entity => entity && typeof entity.id === "string" &&
         typeof entity.name === "string" && entity.name.length <= 80 &&
-        ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc"].includes(entity.kind) &&
+        ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc", "building", "vehicle"].includes(entity.kind) &&
         [entity.x, entity.y, entity.width, entity.height].every(Number.isFinite) &&
         entity.x >= 0 && entity.y >= 0 && entity.width > 0 && entity.height > 0 &&
         entity.x + entity.width <= scene.width && entity.y + entity.height <= scene.height && /^#[0-9a-fA-F]{6}$/.test(entity.color) &&
@@ -154,5 +169,5 @@ export function createEntity(kind: EntityKind, index: number): GameEntity {
   const [width, height] = sizes[kind];
   return { id: makeId(), name: kind[0].toUpperCase() + kind.slice(1) + " " + (index + 1),
     kind, x: 120 + (index % 5) * 90, y: 140 + (index % 3) * 70,
-    width, height, color: colors[kind], visible: true, behavior: kind === "enemy" ? "patrol" : kind === "decoration" ? "float" : "static", speed: kind === "enemy" ? 90 : 30, rotation: 0, opacity: 1 };
+    width, height, color: colors[kind], visible: true, behavior: kind === "enemy" || kind === "npc" ? "patrol" : kind === "decoration" || kind === "collectible" ? "float" : "static", speed: kind === "enemy" ? 90 : 30, rotation: 0, opacity: 1 };
 }
