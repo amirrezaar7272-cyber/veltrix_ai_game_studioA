@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "build:android": "npm run build && npx cap sync android"
+    "build:android": "npm run build && npx cap sync android",
+    "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
     "@mlc-ai/web-llm": "^0.2.80",
@@ -21,6 +22,7 @@
     "@types/node": "^20.14.0",
     "@types/react": "^18.3.0",
     "@capacitor/cli": "^6.2.1",
-    "@capacitor/android": "^6.2.1"
+    "@capacitor/android": "^6.2.1",
+    "tsx": "^4.19.2"
   }
 }
