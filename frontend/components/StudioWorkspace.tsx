@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import "./StudioWorkspace.css";
 import { createEntity, createProject, type EntityKind, type GameEntity, type GameProject, type GameScene, type NewDesign } from "../lib/project";
 import { deleteProject, exportProject, importProject, loadProjects, saveProject } from "../lib/projectStore";
 
