@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import GamePreview from "../components/GamePreview";
+import StudioWorkspace from "../components/StudioWorkspace";
 import { getDeviceProfile, thinkLocally, thinkWithModel, type BrainProgress, type DeviceProfile } from "../lib/localBrain";
 
 type Result = {
@@ -48,6 +49,7 @@ export default function Home() {
       {busy && <div className="progress"><div className="progress-track"><div className="progress-fill" style={{ width: progress.progress + "%" }} /></div><small>{progress.text} {progress.progress > 0 ? progress.progress + "%" : ""}</small></div>}
       {modelError && <p className="model-warning">حالت سبک فعال شد: {modelError}</p>}
     </section>
+    <StudioWorkspace initialDesign={result ? { title: result.title, description: result.description, theme: result.theme, template: result.template } : undefined} />
     {result && <section className="result">
       <div>
         <p className="eyebrow">VELTRIX ON-DEVICE BRAIN</p>
