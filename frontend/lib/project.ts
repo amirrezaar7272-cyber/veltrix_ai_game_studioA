@@ -90,10 +90,11 @@ export function validateProject(value: unknown): value is GameProject {
       scene.width >= 160 && scene.width <= 4096 && scene.height >= 120 && scene.height <= 4096 &&
       /^#[0-9a-fA-F]{6}$/.test(scene.background) && Array.isArray(scene.entities) && scene.entities.length <= 1000 &&
       scene.entities.every(entity => entity && typeof entity.id === "string" &&
-        typeof entity.name === "string" &&
+        typeof entity.name === "string" && entity.name.length <= 80 &&
         ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc"].includes(entity.kind) &&
         [entity.x, entity.y, entity.width, entity.height].every(Number.isFinite) &&
-        entity.width > 0 && entity.height > 0 && typeof entity.color === "string" &&
+        entity.x >= 0 && entity.y >= 0 && entity.width > 0 && entity.height > 0 &&
+        entity.x + entity.width <= scene.width && entity.y + entity.height <= scene.height && /^#[0-9a-fA-F]{6}$/.test(entity.color) &&
         typeof entity.visible === "boolean" &&
         (entity.behavior === undefined || ["static", "patrol", "float", "chase"].includes(entity.behavior)) &&
         (entity.speed === undefined || (Number.isFinite(entity.speed) && entity.speed >= 0 && entity.speed <= 1000)) &&
