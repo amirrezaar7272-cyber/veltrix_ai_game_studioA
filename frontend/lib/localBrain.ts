@@ -10,10 +10,23 @@ export type LocalGameDesign = {
 };
 
 export type BrainProgress = { progress: number; text: string };
+export type DeviceProfile = { mode: "standard" | "light"; reason: string };
 
 const MODEL_ID = "Qwen2.5-0.5B-Instruct-q4f16_1-MLC";
 const memoryKey = "veltrix-local-brain-memory";
 let enginePromise: Promise<any> | null = null;
+
+/** Conservative browser capability check: avoid downloading a large model on low-memory phones. */
+export function getDeviceProfile(): DeviceProfile {
+  if (typeof window === "undefined") return { mode: "light", reason: "Device checks are only available in the browser." };
+  if (!("gpu" in navigator)) return { mode: "light", reason: "WebGPU is not available in this browser." };
+  const memory = (navigator as Navigator & { deviceMemory?: number }).deviceMemory;
+  const cores = navigator.hardwareConcurrency || 0;
+  if ((typeof memory === "number" && memory < 6) || (cores > 0 && cores <= 4)) {
+    return { mode: "light", reason: "This device reports limited memory or CPU capacity; the lightweight mode avoids a large model download." };
+  }
+  return { mode: "standard", reason: "This browser appears suitable for trying the local 0.5B model. Actual support still depends on the GPU and available memory." };
+}
 
 function readMemory(): string[] {
   try {
@@ -30,7 +43,7 @@ function remember(prompt: string) {
   } catch { /* Storage restrictions must not block generation. */ }
 }
 
-/** Deterministic fallback for browsers without WebGPU. */
+/** Deterministic fallback for browsers without suitable local model support. */
 export function thinkLocally(prompt: string): LocalGameDesign {
   const text = prompt.toLocaleLowerCase();
   const persian = /[\u0600-\u06ff]/.test(prompt);
@@ -54,15 +67,16 @@ export function thinkLocally(prompt: string): LocalGameDesign {
       ? (persian ? "تا جای ممکن زنده بمان و به موانع برخورد نکن." : "Survive as long as possible without hitting obstacles.")
       : (persian ? "همه سکه‌ها را جمع کن و بیشترین امتیاز را بگیر." : "Collect the coins and reach the highest score."),
     difficulty, theme, generation_mode: "local_brain",
-    note: persian ? "حالت پایه VELTRIX فعال شد؛ مدل زبانی روی این دستگاه در دسترس نبود."
-      : "VELTRIX basic local mode is active; the language model was unavailable on this device."
+    note: persian ? "حالت سبک VELTRIX فعال شد؛ برای محافظت از حافظه دستگاه، مدل سنگین دانلود نشد."
+      : "VELTRIX lightweight mode is active; the larger model was not downloaded to protect device memory."
   };
 }
 
 async function getEngine(onProgress?: (progress: BrainProgress) => void) {
-  if (typeof window === "undefined" || !("gpu" in navigator)) {
-    throw new Error("WebGPU is not available in this browser.");
-  }
+  const profile = getDeviceProfile();
+  if (profile.mode === "light") throw new Error(profile.reason);
+  const gpu = (navigator as Navigator & { gpu?: { requestAdapter: () => Promise<unknown> } }).gpu;
+  if (!gpu || !(await gpu.requestAdapter())) throw new Error("No compatible WebGPU adapter was found.");
   if (!enginePromise) {
     enginePromise = import("@mlc-ai/web-llm").then(({ CreateMLCEngine }) =>
       CreateMLCEngine(MODEL_ID, {
@@ -103,7 +117,7 @@ export async function thinkWithModel(
   });
   const raw = response.choices?.[0]?.message?.content;
   if (typeof raw !== "string") throw new Error("The local model returned an empty response.");
-  const parsed = JSON.parse(raw.replace(/^\s*```(?:json)?/i, "").replace(/```\s*$/, "").trim());
+  const parsed = JSON.parse(raw.replace(/^\s*\`\`\`(?:json)?/i, "").replace(/\`\`\`\s*$/, "").trim());
   const persian = /[\u0600-\u06ff]/.test(prompt);
   const design: LocalGameDesign = {
     template: parsed.template === "dodge" ? "dodge" : "coin_collector",
