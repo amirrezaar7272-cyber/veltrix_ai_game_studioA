@@ -9,7 +9,7 @@ VELTRIX is a local-first, bilingual 2D game-studio foundation. It combines an op
 - Versioned .veltrix projects with multiple scenes, entity types, project validation, local auto-save and import/export.
 - Drag-and-drop scene editor, grid snapping, zoom, layer ordering, keyboard shortcuts and entity inspector.
 - Playable 2D runtime with keyboard and touch input, score, lives, collectibles, hazards, goals and scene progression.
-- Deterministic 2D AABB physics world with fixed-size substeps, gravity, body types, mass-aware collision response, friction, restitution, platform landing and jump input. It is an arcade/platformer solver, not a general 3D or constraint-based rigid-body engine.
+- Deterministic 2D AABB physics world with fixed-size substeps, gravity, body types, mass-scaled player acceleration, friction, restitution, platform landing, jump input and sensor overlap detection. The current runtime simulates the controlled player against static geometry; it is an arcade/platformer solver, not a complete multi-body, 3D or constraint-based rigid-body engine.
 - Per-entity keyframe tracks with interpolation, linear/ease-in/ease-out/ease-in-out curves, duration and looping. Tracks can be previewed in the editor and sampled during gameplay.
 - Scene audio library: up to two audio files per scene, each up to 1 MB, embedded in .veltrix project data; volume and music/effect mode are configurable. Audio can be triggered by visual logic nodes. Browser autoplay rules still apply.
 - Directed visual event graph with start, collision, collect and goal triggers; move, wait, play-audio, set-visible and set-score actions. Graph traversal is bounded to prevent cyclic graphs from hanging the game loop.
