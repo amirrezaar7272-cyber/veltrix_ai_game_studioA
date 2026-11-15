@@ -9,11 +9,11 @@ import { drawGameEntity, drawSceneBackground } from "../lib/renderer2d";
 import { ParticleSystem } from "../lib/particles";
 
 type Props = { scene: GameScene; active: boolean; language?: "fa" | "en"; onComplete?: () => void };
-type Input = { up: boolean; down: boolean; left: boolean; right: boolean };
+type Input = { up: boolean; down: boolean; left: boolean; right: boolean; interact: boolean };
 
 export default function GameRunner({ scene, active, language = "en", onComplete }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const input = useRef<Input>({ up: false, down: false, left: false, right: false });
+  const input = useRef<Input>({ up: false, down: false, left: false, right: false, interact: false });
   const [score, setScore] = useState(0);
   const [lives, setLives] = useState(3);
   const [status, setStatus] = useState<"playing" | "won" | "lost" | "missing-player">("playing");
@@ -48,14 +48,15 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     const physics = new PhysicsWorld({ worldWidth: width, worldHeight: height, gravity: 980, maxSubstep: 1 / 120 });
     physics.sync(entities);
     let x = player.x, y = player.y, jumpWasDown = false;
-    let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0;
+    let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0, interactWasDown = false;
+    let drivingVehicleId: string | null = null;
     let finalStatus: "won" | "lost" | null = null;
     setScore(0); setLives(3); setStatus("playing");
     void executeLogicGraph(runtimeScene, "start", player.id, { playAudio, addScore: value => { points += value; setScore(points); } });
     const sensorContacts = new Set<string>();
     const keys: Record<string, keyof Input> = {
       ArrowUp: "up", w: "up", W: "up", ArrowDown: "down", s: "down", S: "down",
-      ArrowLeft: "left", a: "left", A: "left", ArrowRight: "right", d: "right", D: "right"
+      ArrowLeft: "left", a: "left", A: "left", ArrowRight: "right", d: "right", D: "right", e: "interact", E: "interact"
     };
     const down = (event: KeyboardEvent) => {
       const key = keys[event.key];
@@ -91,6 +92,20 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       last = time; elapsed += delta;
       const jumpPressed = input.current.up && !jumpWasDown;
       jumpWasDown = input.current.up;
+      const interactPressed = input.current.interact && !interactWasDown;
+      interactWasDown = input.current.interact;
+      if (interactPressed) {
+        if (drivingVehicleId) {
+          const currentVehicle = entities.find(item => item.id === drivingVehicleId);
+          if (currentVehicle) { x = currentVehicle.x + currentVehicle.width + 6; y = currentVehicle.y; }
+          drivingVehicleId = null;
+        } else {
+          const nearest = entities.filter(item => item.kind === "vehicle" && item.visible)
+            .map(item => ({ item, distance: Math.hypot((item.x + item.width/2) - (x + player.width/2), (item.y + item.height/2) - (y + player.height/2)) }))
+            .sort((a,b) => a.distance-b.distance)[0];
+          if (nearest && nearest.distance < 105) drivingVehicleId = nearest.item.id;
+        }
+      }
       const contacts = physics.step(entities, delta, { up: input.current.up, down: input.current.down, left: input.current.left, right: input.current.right, jumpPressed }, player.id);
       const currentSensors = new Set<string>();
       for (const contact of contacts.filter(item => item.sensor)) {
@@ -101,6 +116,23 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       sensorContacts.clear(); currentSensors.forEach(id => sensorContacts.add(id));
       const playerBody = physics.bodies.get(player.id)!;
       x = playerBody.x; y = playerBody.y;
+      const drivingVehicle = drivingVehicleId ? entities.find(item => item.id === drivingVehicleId) : undefined;
+      if (drivingVehicle) {
+        const dx = (input.current.right?1:0)-(input.current.left?1:0);
+        const dy = (input.current.down?1:0)-(input.current.up?1:0);
+        const length = Math.hypot(dx,dy) || 1;
+        const stepX = dx/length*(drivingVehicle.speed??190)*delta;
+        const stepY = dy/length*(drivingVehicle.speed??190)*delta;
+        const blocked = (nx:number,ny:number) => entities.some(item => item.kind==="building" && item.visible &&
+          nx < item.x+item.width && nx+drivingVehicle.width > item.x && ny < item.y+item.height && ny+drivingVehicle.height > item.y);
+        const nextX=Math.max(0,Math.min(width-drivingVehicle.width,drivingVehicle.x+stepX));
+        const nextY=Math.max(0,Math.min(height-drivingVehicle.height,drivingVehicle.y+stepY));
+        if (!blocked(nextX,drivingVehicle.y)) drivingVehicle.x=nextX;
+        if (!blocked(drivingVehicle.x,nextY)) drivingVehicle.y=nextY;
+        x=drivingVehicle.x+drivingVehicle.width/2-player.width/2;
+        y=drivingVehicle.y+drivingVehicle.height/2-player.height/2;
+        playerBody.x=x;playerBody.y=y;playerBody.vx=0;playerBody.vy=0;
+      }
       for (const item of entities.filter(item => item.visible && item.kind === "collectible" && !collected.has(item.id))) {
         const p = position(item);
         if (hit(x, y, player.width, player.height, p.x, p.y, item.width, item.height)) {
@@ -135,7 +167,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
         const pose = track ? sampleAnimation(track, elapsed) : undefined;
         drawGameEntity(ctx, entity, p.x, p.y, elapsed, pose ?? {});
       }
-      drawGameEntity(ctx, player, x, y, elapsed);
+      if (!drivingVehicle) drawGameEntity(ctx, player, x, y, elapsed);
       particles.draw(ctx);
 
       if (stopped) {
@@ -154,13 +186,14 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       audioPlayers.clear();
       window.removeEventListener("keydown", down);
       window.removeEventListener("keyup", up);
-      input.current = { up: false, down: false, left: false, right: false };
+      input.current = { up: false, down: false, left: false, right: false, interact: false };
     };
   }, [scene, active]);
 
   function press(key: keyof Input, value: boolean) { input.current[key] = value; }
   return <div className="studio-runner">
     <div className="studio-runner-bar"><strong>{language === "fa" ? "اجرای زنده صحنه" : "LIVE SCENE"}</strong><span>{language === "fa" ? "امتیاز" : "Score"}: {score}</span><span>{language === "fa" ? "جان" : "Lives"}: {lives}</span>
+      {drivingVehicleId && <span>{language === "fa" ? "در حال رانندگی" : "DRIVING"}</span>}
       {status === "won" && <span>{language === "fa" ? "مرحله کامل شد" : "Level complete"}</span>}
       {status === "lost" && <span>{language === "fa" ? "بازی تمام شد" : "Game over"}</span>}
       {status === "missing-player" && <span>{language === "fa" ? "برای اجرای صحنه یک شخصیت بازیکن اضافه کن" : "Add a player object to run this scene"}</span>}
@@ -173,7 +206,8 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       <button aria-label={language === "fa" ? "حرکت چپ" : "Move left"} onPointerDown={() => press("left", true)} onPointerUp={() => press("left", false)} onPointerLeave={() => press("left", false)} onPointerCancel={() => press("left", false)}>◀</button>
       <button aria-label={language === "fa" ? "حرکت پایین" : "Move down"} onPointerDown={() => press("down", true)} onPointerUp={() => press("down", false)} onPointerLeave={() => press("down", false)} onPointerCancel={() => press("down", false)}>▼</button>
       <button aria-label={language === "fa" ? "حرکت راست" : "Move right"} onPointerDown={() => press("right", true)} onPointerUp={() => press("right", false)} onPointerLeave={() => press("right", false)} onPointerCancel={() => press("right", false)}>▶</button>
+      <button aria-label={language === "fa" ? "سوار یا پیاده شدن" : "Enter or exit vehicle"} onPointerDown={() => press("interact", true)} onPointerUp={() => press("interact", false)} onPointerLeave={() => press("interact", false)} onPointerCancel={() => press("interact", false)}>E</button>
     </div>
-    <p className="studio-muted">{language === "fa" ? "کنترل: کلیدهای جهت یا WASD · موبایل: دکمه‌های لمسی · آیتم‌ها را جمع کن، از خطرها دوری کن و به دروازه برس." : "Keyboard: arrows / WASD · Touch: directional pad · Collect items, avoid hazards, reach the goal."}</p>
+    <p className="studio-muted">{language === "fa" ? "کنترل: جهت‌ها یا WASD · کلید E برای سوار/پیاده‌شدن از خودرو · موبایل: دکمه E · در شهر بگرد و مأموریت‌ها را انجام بده." : "Keyboard: arrows / WASD · E to enter/exit nearby vehicles · Touch: directional pad + E · Explore, collect tokens and reach the mission marker."}</p>
   </div>;
 }
