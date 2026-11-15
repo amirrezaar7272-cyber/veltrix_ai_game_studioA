@@ -12,7 +12,6 @@ const overlaps = (a: {x:number;y:number;width:number;height:number}, b: {x:numbe
 /** Deterministic axis-separated AABB physics for 2D platform and arcade games. */
 export class PhysicsWorld {
   readonly bodies = new Map<string, BodyState>();
-  private previousContacts = new Map<string, PhysicsContact>();
   constructor(private config: PhysicsConfig) {}
 
   sync(entities: GameEntity[]) {
@@ -23,20 +22,18 @@ export class PhysicsWorld {
 
   step(entities: GameEntity[], dt: number, input: PhysicsInput = {}, playerId?: string): PhysicsContact[] {
     this.sync(entities);
-    const byId = new Map(entities.map(e => [e.id,e]));
     const maxStep = this.config.maxSubstep ?? 1/120;
     const steps = Math.max(1, Math.ceil(clamp(dt,0,0.1) / maxStep));
     const h = clamp(dt,0,0.1) / steps;
     const contacts = new Map<string,PhysicsContact>();
     for (let s=0;s<steps;s++) this.substep(entities,h,input,playerId,contacts);
-    this.previousContacts = contacts;
     return [...contacts.values()];
   }
 
   private substep(entities: GameEntity[], dt: number, input: PhysicsInput, playerId: string | undefined, contacts: Map<string,PhysicsContact>) {
     const solids = entities.filter(e => e.visible && !e.isSensor && (e.kind === "platform" || e.bodyType === "static"));
     for (const e of entities) {
-      if (!e.visible) continue;
+      if (!e.visible || e.id !== playerId) continue;
       const body = this.bodies.get(e.id)!;
       const type = e.bodyType ?? (e.kind === "platform" || e.kind === "decoration" ? "static" : "dynamic");
       if (type === "static") { body.vx=0; body.vy=0; continue; }
