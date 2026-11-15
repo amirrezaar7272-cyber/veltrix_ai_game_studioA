@@ -52,7 +52,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0, interactWasDown = false;
     let drivingVehicleId: string | null = null;
     let finalStatus: "won" | "lost" | null = null;
-    setScore(0); setLives(3); setStatus("playing");
+    setScore(0); setLives(3); setStatus("playing"); setIsDriving(false);
     void executeLogicGraph(runtimeScene, "start", player.id, { playAudio, addScore: value => { points += value; setScore(points); } });
     const sensorContacts = new Set<string>();
     const keys: Record<string, keyof Input> = {
