@@ -23,6 +23,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
   const [snapToGrid, setSnapToGrid] = useState(true);
   const [zoom, setZoom] = useState(100);
   const canvasRef = useRef<HTMLDivElement>(null);
+  const dragOffset = useRef({ x: 0, y: 0 });
   const skipFirstAutosave = useRef(true);
   const fileInput = useRef<HTMLInputElement>(null);
   const t = labels[language];
@@ -75,13 +76,13 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
     const scaleX = scene.width / rect.width, scaleY = scene.height / rect.height;
     const entity = scene.entities.find(item => item.id === id);
     if (!entity) return;
-    let x = Math.max(0, Math.min(scene.width - entity.width, (clientX - rect.left) * scaleX));
-    let y = Math.max(0, Math.min(scene.height - entity.height, (clientY - rect.top) * scaleY));
+    let x = Math.max(0, Math.min(scene.width - entity.width, (clientX - rect.left) * scaleX - dragOffset.current.x));
+    let y = Math.max(0, Math.min(scene.height - entity.height, (clientY - rect.top) * scaleY - dragOffset.current.y));
     if (snapToGrid) { x = Math.round(x / 16) * 16; y = Math.round(y / 16) * 16; }
     updateScene({ entities: scene.entities.map(item => item.id === id ? { ...item, x, y } : item) });
   }
   function duplicateEntity(entity: GameEntity) {
-    const copy = { ...entity, id: crypto.randomUUID(), name: entity.name + " Copy", x: Math.min(scene.width - entity.width, entity.x + 24), y: Math.min(scene.height - entity.height, entity.y + 24) };
+    const copy = { ...entity, id: typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : "vx-" + Date.now().toString(36), name: entity.name + " Copy", x: Math.min(scene.width - entity.width, entity.x + 24), y: Math.min(scene.height - entity.height, entity.y + 24) };
     updateScene({ entities: [...scene.entities, copy] }); setSelectedId(copy.id);
   }
   function save() {
@@ -171,7 +172,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
         <div className="studio-scene-tabs">{project.scenes.map(item => <div className="studio-scene-tab" key={item.id}><button className={item.id === scene.id ? "active" : "studio-quiet"} onClick={() => { setProject(p => ({ ...p, activeSceneId: item.id })); setSelectedId(""); }}>{item.name}</button><button className="studio-tab-action" title="Duplicate scene" onClick={() => duplicateScene(item)}>⧉</button><button className="studio-tab-action" title="Delete scene" onClick={() => removeScene(item)}>×</button></div>)}<button className="studio-quiet" onClick={addScene}>＋ {t.addScene}</button></div>
         <div ref={canvasRef} className="studio-canvas" style={{ aspectRatio: scene.width + " / " + scene.height, background: scene.background, transform: "scale(" + (zoom / 100) + ")", transformOrigin: "top center" }}>
           <div className="studio-canvas-grid" />
-          {scene.entities.filter(entity => entity.visible).map(entity => <button key={entity.id} aria-label={entity.name} onPointerDown={event => { event.preventDefault(); setSelectedId(entity.id); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (event.buttons === 1) moveEntity(entity.id, event.clientX, event.clientY); }} onClick={() => setSelectedId(entity.id)} className={"studio-canvas-entity " + (entity.id === selectedId ? "selected" : "")} style={{ left: ((entity.x + entity.width / 2) / scene.width * 100) + "%", top: ((entity.y + entity.height / 2) / scene.height * 100) + "%", width: (entity.width / scene.width * 100) + "%", height: (entity.height / scene.height * 100) + "%", background: entity.color, opacity: entity.opacity ?? 1, transform: "translate(-50%,-50%) rotate(" + (entity.rotation || 0) + "deg)", borderRadius: ["collectible", "enemy", "hazard"].includes(entity.kind) ? "50%" : "7px" }}><span>{entity.name}</span></button>)}
+          {scene.entities.filter(entity => entity.visible).map(entity => <button key={entity.id} aria-label={entity.name} onPointerDown={event => { event.preventDefault(); const rect = canvasRef.current?.getBoundingClientRect(); if (rect) { dragOffset.current = { x: (event.clientX - rect.left) * scene.width / rect.width - entity.x, y: (event.clientY - rect.top) * scene.height / rect.height - entity.y }; } setSelectedId(entity.id); event.currentTarget.setPointerCapture(event.pointerId); }} onPointerMove={event => { if (event.buttons === 1) moveEntity(entity.id, event.clientX, event.clientY); }} onClick={() => setSelectedId(entity.id)} className={"studio-canvas-entity " + (entity.id === selectedId ? "selected" : "")} style={{ left: ((entity.x + entity.width / 2) / scene.width * 100) + "%", top: ((entity.y + entity.height / 2) / scene.height * 100) + "%", width: (entity.width / scene.width * 100) + "%", height: (entity.height / scene.height * 100) + "%", background: entity.color, opacity: entity.opacity ?? 1, transform: "translate(-50%,-50%) rotate(" + (entity.rotation || 0) + "deg)", borderRadius: ["collectible", "enemy", "hazard"].includes(entity.kind) ? "50%" : "7px" }}><span>{entity.name}</span></button>)}
           {scene.entities.length === 0 && <p className="studio-canvas-empty">Add objects to begin building this scene</p>}
         </div>
         {isPlaying && <GameRunner key={scene.id} scene={scene} active={isPlaying} />}
