@@ -39,12 +39,15 @@ export class PhysicsWorld {
       if (type === "static") { body.vx=0; body.vy=0; continue; }
       if (e.id === playerId) {
         const speed = e.speed ?? 180;
-        const target = ((input.right?1:0)-(input.left?1:0))*speed;
+        const moveX = (input.right?1:0)-(input.left?1:0);
+        const moveY = (input.down?1:0)-(input.up?1:0);
+        const magnitude = Math.hypot(moveX,moveY) || 1;
         const friction = clamp(e.friction ?? .18,0,1);
         const mass = Math.max(.1,e.mass ?? 1);
-        body.vx += (target-body.vx)*clamp(((target===0?friction*12:18)/mass)*dt,0,1);
+        const targetX = moveX / magnitude * speed;
+        body.vx += (targetX-body.vx)*clamp(((targetX===0?friction*12:18)/mass)*dt,0,1);
         if ((e.gravityScale ?? 0) <= 0) {
-          const targetY = ((input.down?1:0)-(input.up?1:0))*speed;
+          const targetY = moveY / magnitude * speed;
           body.vy += (targetY-body.vy)*clamp((targetY===0?friction*12:18)*dt,0,1);
         } else if (input.jumpPressed && body.grounded) { body.vy = -Math.max(240, speed*1.65); body.grounded=false; }
       }
