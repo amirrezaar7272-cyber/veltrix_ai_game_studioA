@@ -43,12 +43,12 @@ export class PhysicsWorld {
         const friction = clamp(e.friction ?? .18,0,1);
         const mass = Math.max(.1,e.mass ?? 1);
         body.vx += (target-body.vx)*clamp(((target===0?friction*12:18)/mass)*dt,0,1);
-        if ((e.gravityScale ?? 1) <= 0) {
+        if ((e.gravityScale ?? 0) <= 0) {
           const targetY = ((input.down?1:0)-(input.up?1:0))*speed;
           body.vy += (targetY-body.vy)*clamp((targetY===0?friction*12:18)*dt,0,1);
         } else if (input.jumpPressed && body.grounded) { body.vy = -Math.max(240, speed*1.65); body.grounded=false; }
       }
-      if (type === "dynamic") body.vy += (this.config.gravity ?? 980) * (e.gravityScale ?? 1) * dt;
+      if (type === "dynamic") body.vy += (this.config.gravity ?? 980) * (e.gravityScale ?? 0) * dt;
       body.x += body.vx*dt;
       body.x = clamp(body.x,0,Math.max(0,this.config.worldWidth-e.width));
       for (const other of solids) {
