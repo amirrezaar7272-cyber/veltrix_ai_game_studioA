@@ -1,17 +1,20 @@
 # VELTRIX AI — BEYOND INTELLIGENCE
 
-A bilingual, mobile-friendly 2D game-studio project. The current frontend combines an optional on-device language model with an editable scene/project workspace.
+VELTRIX is a local-first, bilingual 2D game-studio prototype. It combines an optional on-device language model, a structured scene editor, local project management, and a lightweight playable runtime.
 
-## Current frontend capabilities
+## Current studio features
 
-- Persian and English game prompts.
-- Optional Qwen2.5 0.5B in-browser inference through WebLLM and WebGPU; no AI API key is required for this path.
-- Lightweight rule-based fallback when WebGPU or device resources are unavailable.
-- Versioned project format (schemaVersion 1) with scenes and typed entities.
-- Scene editor for background, dimensions, and scene names.
-- Entity creation and inspection for player, enemy, collectible, platform, and decoration objects.
-- Basic playable canvas runtime with keyboard and touch movement, collectible scoring, enemy collisions, and lives.
-- Local browser project library plus .veltrix JSON import/export.
+- Persian and English prompt interface.
+- Optional Qwen2.5 0.5B in-browser inference through WebLLM/WebGPU; the frontend's local path needs no AI API key or paid inference server.
+- Rule-based local fallback for devices that cannot run the larger model.
+- Versioned project files with multiple scenes and typed entities.
+- Scene creation, duplication, deletion, renaming, background color and canvas dimensions.
+- Drag-and-drop object placement, optional 16px snapping, canvas zoom and layer ordering.
+- Entity inspector for position, size, color, visibility, rotation, opacity, movement behavior and speed.
+- Entity types: player, enemy, collectible, platform, decoration, hazard, goal and NPC.
+- Runtime movement with keyboard and touch controls, collectible scoring, lives, invulnerability after damage, moving/pursuing enemies, hazards and goal completion.
+- Debounced local auto-save, manual save, project list, and portable .veltrix import/export.
+- Responsive layout for mobile and desktop.
 
 ## Run locally
 
@@ -25,27 +28,27 @@ npm run dev
 
 Open http://localhost:3000.
 
-## On-device model
-
-The optional local model needs a compatible WebGPU browser/GPU and an initial model download. The current model is Qwen2.5 0.5B (quantized). Actual compatibility and memory use vary by device. On unsupported or constrained devices, VELTRIX uses its lightweight local fallback. Prompts for this local path are not sent to an AI API.
-
-## Storage and project portability
-
-Projects are saved in the browser's localStorage on the current device/browser profile. Use Export .veltrix to create a portable backup and Import project to restore it elsewhere. Clearing browser storage can remove locally saved projects; export backups regularly.
-
-## Current limitations — important
-
-This is an actively developed foundation, not yet a finished commercial game engine. The runtime currently supports basic top-down movement and simple collectible/enemy/platform interactions. It does not yet provide a full physics engine, animation timeline, sprite/asset pipeline, advanced level logic, arbitrary generated game code, multiplayer, or Android APK packaging. The scene editor and runtime are separate from the older Phaser demo preview.
-
-The repository also contains a legacy optional FastAPI/Gemini backend and Render configuration. The current local-first frontend does not require that backend; deploying it would introduce an external service and API-key dependency.
-
-## Build
+For a production build:
 
 ```bash
-cd frontend
-npm install
 npx tsc --noEmit
 npm run build
 ```
 
-GitHub Actions runs the frontend build on pushes and pull requests targeting main.
+## On-device model
+
+The optional local model requires a compatible WebGPU browser/GPU and an initial model download. The current model is Qwen2.5 0.5B (quantized). Compatibility and memory use vary by device. On unsupported or constrained devices, VELTRIX uses its lightweight local fallback. Prompts processed through this local path are not sent to an AI API.
+
+## Project storage
+
+Projects are stored in localStorage in the current browser profile. Auto-save is enabled. Use Export .veltrix for a backup before clearing browser data or switching devices. Import a .veltrix or JSON project to restore it.
+
+## Known limitations
+
+This is a growing studio foundation, not yet a finished commercial game engine. The runtime is a lightweight 2D prototype: it does not yet include a full physics engine, skeletal animation, a sprite/asset import pipeline, audio mixer, visual scripting, advanced pathfinding, multiplayer, native Android APK packaging, or a general-purpose game export pipeline. The local AI model generates a compact design suggestion; it does not autonomously generate arbitrary production-ready game code or art assets.
+
+The repository also contains a legacy optional FastAPI/Gemini backend and Render configuration. The local-first frontend does not require that backend. Deploying the legacy backend introduces external-service and API-key dependencies.
+
+## Continuous integration
+
+GitHub Actions runs TypeScript validation and a Next.js production build on pushes and pull requests targeting the main branch.
