@@ -42,13 +42,14 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       audio.volume = asset.volume; audio.loop = asset.loop;
       audio.currentTime = 0; void audio.play().catch(() => undefined);
     };
-    executeLogicGraph(runtimeScene, "start", player.id, { playAudio, addScore: value => { points += value; setScore(points); } });
     const physics = new PhysicsWorld({ worldWidth: width, worldHeight: height, gravity: 980, maxSubstep: 1 / 120 });
     physics.sync(entities);
     let x = player.x, y = player.y, jumpWasDown = false;
     let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0;
     let finalStatus: "won" | "lost" | null = null;
     setScore(0); setLives(3); setStatus("playing");
+    void executeLogicGraph(runtimeScene, "start", player.id, { playAudio, addScore: value => { points += value; setScore(points); } });
+    const sensorContacts = new Set<string>();
     const keys: Record<string, keyof Input> = {
       ArrowUp: "up", w: "up", W: "up", ArrowDown: "down", s: "down", S: "down",
       ArrowLeft: "left", a: "left", A: "left", ArrowRight: "right", d: "right", D: "right"
@@ -116,7 +117,14 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       last = time; elapsed += delta;
       const jumpPressed = input.current.up && !jumpWasDown;
       jumpWasDown = input.current.up;
-      physics.step(entities, delta, { left: input.current.left, right: input.current.right, jumpPressed }, player.id);
+      const contacts = physics.step(entities, delta, { left: input.current.left, right: input.current.right, jumpPressed }, player.id);
+      const currentSensors = new Set<string>();
+      for (const contact of contacts.filter(item => item.sensor)) {
+        const otherId = contact.a === player.id ? contact.b : contact.a;
+        currentSensors.add(otherId);
+        if (!sensorContacts.has(otherId)) void executeLogicGraph(runtimeScene, "collision", otherId, { playAudio, addScore: value => { points += value; setScore(points); } });
+      }
+      sensorContacts.clear(); currentSensors.forEach(id => sensorContacts.add(id));
       const playerBody = physics.bodies.get(player.id)!;
       x = playerBody.x; y = playerBody.y;
       for (const item of entities.filter(item => item.visible && item.kind === "collectible" && !collected.has(item.id))) {
@@ -128,8 +136,8 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       }
       for (const goal of entities.filter(item => item.visible && item.kind === "goal")) {
         if (hit(x, y, player.width, player.height, goal.x, goal.y, goal.width, goal.height)) {
-          void executeLogicGraph(runtimeScene, "goal", goal.id, { playAudio, addScore: value => { points += value; setScore(points); } });
-          stopped = true; finalStatus = "won"; setStatus("won"); onCompleteRef.current?.();
+          stopped = true; finalStatus = "won"; setStatus("won");
+          void executeLogicGraph(runtimeScene, "goal", goal.id, { playAudio, addScore: value => { points += value; setScore(points); } }).finally(() => onCompleteRef.current?.());
         }
       }
       for (const danger of entities.filter(item => !stopped && item.visible && (item.kind === "enemy" || item.kind === "hazard"))) {
