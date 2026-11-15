@@ -69,10 +69,10 @@ export function createProject(design: NewDesign = {}): GameProject {
     scenes: [{
       id: sceneId, name: "Main Scene", width: 960, height: 540, background,
       entities: [
-        { id: makeId(), name: "Player", kind: "player", x: 150, y: 390, width: 42, height: 52, color: "#56d8ee", visible: true },
+        { id: makeId(), name: "Player", kind: "player", x: 150, y: 390, width: 42, height: 52, color: "#56d8ee", visible: true, behavior: "static", speed: 180, rotation: 0, opacity: 1 },
         ...(isDodge
-          ? [{ id: makeId(), name: "Meteor", kind: "enemy" as const, x: 620, y: 170, width: 46, height: 46, color: "#e47779", visible: true }]
-          : [{ id: makeId(), name: "Crystal", kind: "collectible" as const, x: 420, y: 240, width: 28, height: 28, color: "#ffc857", visible: true }])
+          ? [{ id: makeId(), name: "Meteor", kind: "enemy" as const, x: 620, y: 170, width: 46, height: 46, color: "#e47779", visible: true, behavior: "patrol" as const, speed: 90, rotation: 0, opacity: 1 }]
+          : [{ id: makeId(), name: "Crystal", kind: "collectible" as const, x: 420, y: 240, width: 28, height: 28, color: "#ffc857", visible: true, behavior: "float" as const, speed: 30, rotation: 0, opacity: 1 }])
       ]
     }]
   };
