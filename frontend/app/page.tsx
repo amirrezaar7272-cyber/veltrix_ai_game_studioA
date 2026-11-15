@@ -56,7 +56,7 @@ export default function Home() {
         <p><strong>Difficulty:</strong> {result.difficulty} · <strong>Theme:</strong> {result.theme}</p>
         <small>{result.note}</small>
       </div>
-      <GamePreview template={result.template} />
+      <GamePreview template={result.template} theme={result.theme} />
     </section>}
     <footer>VELTRIX AI · BEYOND INTELLIGENCE · YOUR PROMPTS STAY ON THIS DEVICE</footer>
   </main>;
