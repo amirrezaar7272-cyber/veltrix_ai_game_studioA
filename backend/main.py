@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 
-app = FastAPI(title="VELTRIX AI API", version="0.2.0")
+app = FastAPI(title="VELTRIX AI API", version="0.3.0")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.getenv("FRONTEND_ORIGINS", "http://localhost:3000").split(","),
@@ -52,12 +52,16 @@ def fallback_design(prompt: str, language: str) -> dict:
     }
 
 async def ask_model(prompt: str, language: str) -> dict | None:
-    api_key = os.getenv("OPENAI_API_KEY")
+    # Gemini API has a free tier for eligible models and usage limits.
+    api_key = os.getenv("GEMINI_API_KEY") or os.getenv("OPENAI_API_KEY")
     if not api_key:
         return None
 
-    base_url = os.getenv("AI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-    model = os.getenv("AI_MODEL", "gpt-4o-mini")
+    base_url = os.getenv(
+        "AI_BASE_URL",
+        "https://generativelanguage.googleapis.com/v1beta/openai/"
+    ).rstrip("/")
+    model = os.getenv("AI_MODEL", "gemini-3.8-flash")
     system = (
         "You are VELTRIX AI, a professional 2D game designer. "
         "Convert the user's idea into a concise playable prototype design. "
@@ -96,8 +100,8 @@ def health():
     return {
         "status": "ok",
         "project": "VELTRIX AI",
-        "ai_configured": bool(os.getenv("OPENAI_API_KEY")),
-        "model": os.getenv("AI_MODEL", "gpt-4o-mini")
+        "ai_configured": bool(os.getenv("GEMINI_API_KEY") or os.getenv("OPENAI_API_KEY")),
+        "model": os.getenv("AI_MODEL", "gemini-3.8-flash")
     }
 
 @app.post("/generate")
@@ -113,8 +117,8 @@ async def generate(payload: GamePrompt):
             **design,
             "status": "prototype",
             "generation_mode": mode,
-            "note": "Generated with the configured language model." if mode == "ai"
-                    else "Template mode is active. Add OPENAI_API_KEY to enable AI design generation."
+            "note": "Generated with Gemini API." if mode == "ai"
+                    else "Template mode is active. Add GEMINI_API_KEY to enable AI design generation."
         }
     except (httpx.HTTPError, ValueError, KeyError, TypeError) as exc:
         raise HTTPException(status_code=502, detail=f"AI generation failed: {str(exc)[:240]}")
