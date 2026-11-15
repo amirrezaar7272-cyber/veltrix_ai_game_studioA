@@ -160,14 +160,14 @@ export function validateProject(value: unknown): value is GameProject {
 export function createEntity(kind: EntityKind, index: number): GameEntity {
   const colors: Record<EntityKind, string> = {
     player: "#56d8ee", enemy: "#e47779", collectible: "#ffc857",
-    platform: "#6485b7", decoration: "#a78bfa", hazard: "#ff5b67", goal: "#53e0a2", npc: "#f0a6ff"
+    platform: "#6485b7", decoration: "#a78bfa", hazard: "#ff5b67", goal: "#53e0a2", npc: "#f0a6ff", building: "#687b91", vehicle: "#e9c84b"
   };
   const sizes: Record<EntityKind, [number, number]> = {
     player: [42, 52], enemy: [46, 46], collectible: [28, 28],
-    platform: [180, 24], decoration: [36, 36], hazard: [42, 42], goal: [48, 64], npc: [42, 52]
+    platform: [180, 24], decoration: [36, 36], hazard: [42, 42], goal: [48, 64], npc: [42, 52], building: [150, 100], vehicle: [58, 30]
   };
   const [width, height] = sizes[kind];
   return { id: makeId(), name: kind[0].toUpperCase() + kind.slice(1) + " " + (index + 1),
     kind, x: 120 + (index % 5) * 90, y: 140 + (index % 3) * 70,
-    width, height, color: colors[kind], visible: true, behavior: kind === "enemy" || kind === "npc" ? "patrol" : kind === "decoration" || kind === "collectible" ? "float" : "static", speed: kind === "enemy" ? 90 : 30, rotation: 0, opacity: 1 };
+    width, height, color: colors[kind], visible: true, bodyType: kind === "building" || kind === "vehicle" || kind === "platform" ? "static" : undefined, behavior: kind === "enemy" || kind === "npc" ? "patrol" : kind === "decoration" || kind === "collectible" ? "float" : "static", speed: kind === "enemy" ? 90 : 30, rotation: 0, opacity: 1 };
 }
