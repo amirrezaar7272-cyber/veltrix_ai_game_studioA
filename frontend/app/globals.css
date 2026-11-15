@@ -17,3 +17,11 @@ button:disabled { opacity: .5; cursor: wait; }
 .game-frame { width: 100%; overflow: hidden; border: 1px solid #3a4c6b; border-radius: 12px; }
 footer { margin-top: 70px; color: #66748d; font-size: 12px; }
 @media (max-width: 700px) { .result { grid-template-columns: 1fr; } .tag { font-size: 9px; } }
+
+.model-info { display: grid; gap: 7px; margin: 18px 0 8px; padding: 14px 16px; border: 1px solid #29445d; border-radius: 12px; background: #0d1728; }
+.model-info strong { color: #65dff4; font-size: 11px; letter-spacing: 1px; }
+.model-info span, .progress small { color: #aab7ce; font-size: 12px; line-height: 1.6; }
+.progress { display: grid; gap: 8px; margin-top: 14px; }
+.progress-track { height: 7px; overflow: hidden; border-radius: 99px; background: #25334a; }
+.progress-fill { height: 100%; border-radius: 99px; background: #65dff4; transition: width .25s ease; }
+.model-warning { color: #ffbd78; font-size: 12px; line-height: 1.5; }
