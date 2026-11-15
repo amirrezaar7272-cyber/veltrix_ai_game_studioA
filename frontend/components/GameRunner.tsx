@@ -91,7 +91,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       if (stopped) return;
       const delta = Math.min((time - (last || time)) / 1000, .04);
       last = time; elapsed += delta;
-      const speed = (player.speed ?? Math.max(width, height) * .42) * delta;
+      const speed = (player.bodyType === "static" ? 0 : (player.speed ?? Math.max(width, height) * .42)) * delta;
       const oldX = x, oldY = y;
       const gravity = (player.gravityScale ?? 0) > 0 && player.bodyType !== "static";
       if (input.current.left) x -= speed;
