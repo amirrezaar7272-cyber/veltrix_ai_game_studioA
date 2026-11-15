@@ -118,7 +118,7 @@ export function validateProject(value: unknown): value is GameProject {
   if (!p.scenes.every(scene => scene && typeof scene.id === "string" &&
       typeof scene.name === "string" && scene.name.length <= 80 && Number.isFinite(scene.width) && Number.isFinite(scene.height) &&
       scene.width >= 160 && scene.width <= 4096 && scene.height >= 120 && scene.height <= 4096 &&
-      /^#[0-9a-fA-F]{6}$/.test(scene.background) && Array.isArray(scene.entities) && scene.entities.length <= 1000 &&
+      /^#[0-9a-fA-F]{6}$/.test(scene.background) && (scene.environment === undefined || ["city","standard"].includes(scene.environment)) && Array.isArray(scene.entities) && scene.entities.length <= 1000 &&
       scene.entities.every(entity => entity && typeof entity.id === "string" &&
         typeof entity.name === "string" && entity.name.length <= 80 &&
         ["player", "enemy", "collectible", "platform", "decoration", "hazard", "goal", "npc", "building", "vehicle"].includes(entity.kind) &&
