@@ -48,7 +48,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
     };
     const physics = new PhysicsWorld({ worldWidth: width, worldHeight: height, gravity: 980, maxSubstep: 1 / 120 });
     physics.sync(entities);
-    let x = player.x, y = player.y, jumpWasDown = false;
+    let x = player.x, y = player.y, jumpWasDown = false, facing = 0;
     let last = 0, elapsed = 0, invulnerableUntil = 0, stopped = false, frame = 0, interactWasDown = false;
     let drivingVehicleId: string | null = null;
     let finalStatus: "won" | "lost" | null = null;
@@ -98,7 +98,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       if (interactPressed) {
         if (drivingVehicleId) {
           const currentVehicle = entities.find(item => item.id === drivingVehicleId);
-          if (currentVehicle) { x = currentVehicle.x + currentVehicle.width + 6; y = currentVehicle.y; physics.bodies.get(player.id)!.x=x; physics.bodies.get(player.id)!.y=y; }
+          if (currentVehicle) { x = Math.min(width-player.width, currentVehicle.x + currentVehicle.width + 6); y = currentVehicle.y; const body = physics.bodies.get(player.id); if (body) { body.x=x; body.y=y; body.vx=0; body.vy=0; } }
           drivingVehicleId = null; setIsDriving(false);
         } else {
           const nearest = entities.filter(item => item.kind === "vehicle" && item.visible)
@@ -107,7 +107,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
           if (nearest && nearest.distance < 105) { drivingVehicleId = nearest.item.id; setIsDriving(true); }
         }
       }
-      const contacts = physics.step(entities, delta, { up: input.current.up, down: input.current.down, left: input.current.left, right: input.current.right, jumpPressed }, player.id);
+      const contacts = drivingVehicleId ? [] : physics.step(entities, delta, { up: input.current.up, down: input.current.down, left: input.current.left, right: input.current.right, jumpPressed }, player.id);
       const currentSensors = new Set<string>();
       for (const contact of contacts.filter(item => item.sensor)) {
         const otherId = contact.a === player.id ? contact.b : contact.a;
@@ -151,7 +151,7 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
       for (const danger of entities.filter(item => !stopped && item.visible && (item.kind === "enemy" || item.kind === "hazard"))) {
         const p = position(danger);
         if (elapsed >= invulnerableUntil && hit(x, y, player.width, player.height, p.x, p.y, danger.width, danger.height)) {
-          health -= 1; setLives(health); invulnerableUntil = elapsed + 1.1; x = player.x; y = player.y;
+          health -= 1; setLives(health); invulnerableUntil = elapsed + 1.1; x = player.x; y = player.y; playerBody.x=x; playerBody.y=y; playerBody.vx=0; playerBody.vy=0;
           particles.emit(x + player.width / 2, y + player.height / 2, 32, "#ff657a", 230);
           executeLogicGraph(runtimeScene, "collision", danger.id, { playAudio, addScore: value => { points += value; setScore(points); } });
           if (health <= 0) { stopped = true; finalStatus = "lost"; setStatus("lost"); }
@@ -168,7 +168,11 @@ export default function GameRunner({ scene, active, language = "en", onComplete 
         const pose = track ? sampleAnimation(track, elapsed) : undefined;
         drawGameEntity(ctx, entity, p.x, p.y, elapsed, pose ?? {});
       }
-      if (!drivingVehicle) drawGameEntity(ctx, player, x, y, elapsed);
+      if (!drivingVehicle) {
+        const speed = Math.hypot(playerBody.vx, playerBody.vy);
+        if (speed > 7) facing = Math.atan2(playerBody.vy, playerBody.vx) + Math.PI / 2;
+        drawGameEntity(ctx, player, x, y, elapsed, { walkAmount: Math.min(1, speed / 95), walkPhase: elapsed * 13, facing });
+      }
       particles.draw(ctx);
 
       if (stopped) {
