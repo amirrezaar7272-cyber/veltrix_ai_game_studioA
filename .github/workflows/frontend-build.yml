@@ -22,7 +22,6 @@ jobs:
       - name: Apply non-breaking security updates and audit dependencies
         working-directory: frontend
         run: |
-          npm audit fix
           npm audit --audit-level=moderate
       - name: Type check frontend
         working-directory: frontend
