@@ -32,3 +32,17 @@ footer { margin-top: 70px; color: #66748d; font-size: 12px; }
 .game-touch-button:active { background: #24506a; transform: scale(.96); }
 .game-touch-spacer { pointer-events: none; }
 .game-touch-hint { margin: 6px 0 0; color: #8291aa; font-size: 11px; line-height: 1.6; text-align: center; }
+
+
+.wallet-panel { display:grid; gap:10px; margin:22px 0 18px; padding:16px; border:1px solid #31516c; border-radius:14px; background:linear-gradient(145deg,#10263a,#0c1729); }
+.wallet-top { display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.wallet-top div { display:grid; gap:5px; }
+.wallet-top strong { color:#8cecff; font-size:14px; }
+.wallet-top span { color:#fff; font-size:19px; font-weight:800; }
+.wallet-top small,.wallet-note { color:#91a4bf; font-size:11px; line-height:1.6; }
+.wallet-redeem { display:flex; gap:8px; }
+.wallet-redeem input { flex:1; min-width:0; padding:12px; border:1px solid #344a67; border-radius:9px; background:#081526; color:#edf5ff; font:inherit; }
+.wallet-redeem button { padding:10px 14px; white-space:nowrap; }
+.wallet-message { margin:0; color:#8cecff; font-size:12px; }
+.wallet-note { margin:0; }
+@media(max-width:520px) { .wallet-redeem { flex-direction:column; } .wallet-redeem button { width:100%; } }
