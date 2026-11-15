@@ -64,6 +64,7 @@ export default function Home() {
       <p className="sub">Describe a 2D game in Persian or English. VELTRIX checks this device before loading its local language model. No AI API, API key or paid server is used.</p>
       <section className="wallet-panel" aria-label="Token wallet" dir="rtl">
         <div className="wallet-top"><div><strong>کیف پول VELTRIX</strong><span>{walletReady ? (wallet.balance === null ? "اعتبار نامحدود" : wallet.balance + " توکن") : "در حال بارگذاری..."}</span></div><small>هزینه هر ساخت: ۱۰ توکن</small></div>
+        <div className="wallet-tiers"><span>۵۰ توکن</span><span>۱۰۰ توکن</span><span>۴۰۰ توکن</span><span>نامحدود</span></div>
         <div className="wallet-redeem"><input value={redeemInput} onChange={event => setRedeemInput(event.target.value)} placeholder="رمز یک‌بارمصرف را وارد کن" autoComplete="off" spellCheck={false} /><button onClick={() => void redeem()} disabled={!walletReady || redeeming || !redeemInput.trim()}>{redeeming ? "..." : "فعال‌سازی رمز"}</button></div>
         {walletMessage && <p className="wallet-message" role="status">{walletMessage}</p>}
         <p className="wallet-note">رمز پس از فعال‌سازی در همین مرورگر دوباره پذیرفته نمی‌شود. این نسخه محلی است؛ یک‌بارمصرف سراسری و جلوگیری از دست‌کاری اعتبار به سرور امن نیاز دارد.</p>
