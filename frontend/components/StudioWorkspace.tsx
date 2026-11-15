@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import "./StudioWorkspace.css";
+import GameRunner from "./GameRunner";
 import { createEntity, createProject, type EntityKind, type GameEntity, type GameProject, type GameScene, type NewDesign } from "../lib/project";
 import { deleteProject, exportProject, importProject, loadProjects, saveProject } from "../lib/projectStore";
 
@@ -17,6 +18,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
   const [selectedId, setSelectedId] = useState("");
   const [language, setLanguage] = useState<"fa" | "en">("en");
   const [message, setMessage] = useState("");
+  const [isPlaying, setIsPlaying] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const t = labels[language];
   const scene = useMemo(() => project.scenes.find(item => item.id === project.activeSceneId) || project.scenes[0], [project]);
@@ -88,7 +90,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
       <button className="studio-quiet" onClick={() => setLanguage(v => v === "en" ? "fa" : "en")}>{t.language}</button>
     </div>
     <div className="studio-toolbar">
-      <button onClick={createNew}>{t.new}</button><button onClick={save}>{t.save}</button>
+      <button onClick={createNew}>{t.new}</button><button onClick={save}>{t.save}</button><button className="studio-run-button" onClick={() => setIsPlaying(value => !value)}>{isPlaying ? "■ Stop" : "▶ Play scene"}</button>
       <button className="studio-quiet" onClick={download}>{t.export}</button>
       <button className="studio-quiet" onClick={() => fileInput.current?.click()}>{t.import}</button>
       <input ref={fileInput} type="file" accept=".veltrix,.json,application/json" hidden onChange={e => void readImport(e.target.files?.[0])} />
@@ -113,6 +115,7 @@ export default function StudioWorkspace({ initialDesign }: { initialDesign?: New
           {scene.entities.filter(entity => entity.visible).map(entity => <button key={entity.id} aria-label={entity.name} onClick={() => setSelectedId(entity.id)} className={"studio-canvas-entity " + (entity.id === selectedId ? "selected" : "")} style={{ left: (entity.x / scene.width * 100) + "%", top: (entity.y / scene.height * 100) + "%", width: (entity.width / scene.width * 100) + "%", height: (entity.height / scene.height * 100) + "%", background: entity.color, borderRadius: entity.kind === "collectible" || entity.kind === "enemy" ? "50%" : "7px" }}><span>{entity.name}</span></button>)}
           {scene.entities.length === 0 && <p className="studio-canvas-empty">Add objects to begin building this scene</p>}
         </div>
+        {isPlaying && <GameRunner key={scene.id} scene={scene} active={isPlaying} />}
         <div className="studio-scene-settings">
           <label className="studio-field">{t.sceneName}<input value={scene.name} onChange={e => updateScene({ name: e.target.value })} /></label>
           <label className="studio-field">{t.background}<input type="color" value={scene.background} onChange={e => updateScene({ background: e.target.value })} /></label>
