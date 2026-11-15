@@ -13,7 +13,7 @@ type Props = {
 };
 type Edge = { from: string; to: string };
 const uid = () => typeof crypto !== "undefined" && "randomUUID" in crypto ? crypto.randomUUID() : "vx-" + Date.now().toString(36) + Math.random().toString(36).slice(2);
-const nodeKinds: LogicNode["kind"][] = ["collision","collect","move","wait","play-audio","set-visible","set-score"];
+const nodeKinds: LogicNode["kind"][] = ["collision","collect","goal","move","wait","play-audio","set-visible","set-score"];
 const ease = (value:number, kind:AnimationKeyframe["easing"]) => kind==="ease-in"?value*value:kind==="ease-out"?1-(1-value)*(1-value):kind==="ease-in-out"?value<.5?2*value*value:1-Math.pow(-2*value+2,2)/2:value;
 
 export default function AdvancedTools({ scene, selected, onPatch, onScenePatch, language, projectName }: Props) {
@@ -59,7 +59,7 @@ export default function AdvancedTools({ scene, selected, onPatch, onScenePatch, 
   }
   function updateKey(key:AnimationKeyframe,patch:Partial<AnimationKeyframe>){if(!track)return;patchTrack({...track,keyframes:track.keyframes.map(item=>item.id===key.id?{...item,...patch}:item)});}
   function removeKey(id:string){if(track)patchTrack({...track,keyframes:track.keyframes.filter(key=>key.id!==id)});}
-  function addAudio(file?:File){if(!file)return;if(!file.type.startsWith("audio/")){setAudioStatus(fa?"فایل صوتی معتبر نیست":"Unsupported audio file");return;}if(file.size>8*1024*1024){setAudioStatus(fa?"حداکثر حجم هر فایل ۸ مگابایت است":"Each audio file is limited to 8 MB");return;}
+  function addAudio(file?:File){if(!file)return;if(!file.type.startsWith("audio/")){setAudioStatus(fa?"فایل صوتی معتبر نیست":"Unsupported audio file");return;}if(file.size>1024*1024){setAudioStatus(fa?"حداکثر حجم هر فایل ۱ مگابایت است":"Each audio file is limited to 1 MB");return;}
     const reader=new FileReader();reader.onload=()=>{const asset:AudioAsset={id:uid(),name:file.name,dataUrl:String(reader.result),mode:"effect",volume:.8,loop:false};onScenePatch({audioAssets:[...assets,asset]});setAudioStatus(fa?"صدا در پروژه ذخیره شد":"Audio embedded in project");};reader.onerror=()=>setAudioStatus("Could not read audio file");reader.readAsDataURL(file);
   }
   function playAudio(asset:AudioAsset){if(audioRef.current){audioRef.current.pause();audioRef.current.src=asset.dataUrl;audioRef.current.volume=asset.volume;audioRef.current.loop=asset.loop;void audioRef.current.play().then(()=>setAudioStatus(fa?"در حال پخش":"Playing")).catch(()=>setAudioStatus(fa?"پخش توسط مرورگر مسدود شد":"Playback was blocked by the browser"));}}
