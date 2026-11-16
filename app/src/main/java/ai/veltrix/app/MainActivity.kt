@@ -114,7 +114,6 @@ class MainActivity : Activity() {
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
         })
-        root.addView(action("جستجوی اینترنت: روشن / خاموش") { webSearchMode = !webSearchMode; addMessage(messages, "VELTRIX", if (webSearchMode) "جستجو روشن شد" else "جستجو خاموش شد") })
         root.addView(action("خروج از حساب") {
             auth.logout()
             showAuth()
@@ -127,6 +126,7 @@ class MainActivity : Activity() {
         scroll.addView(messages)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
         addMessage(messages, "VELTRIX", if (brain.isReady()) "مغز عصبی آفلاین بارگذاری شد." else "هسته VELTRIX آماده اتصال است؛ هنوز مدل آموزش‌دیده‌ای در فایل‌های برنامه وجود ندارد.")
+        root.addView(action("جستجوی اینترنت: روشن / خاموش") { webSearchMode = !webSearchMode; addMessage(messages, "VELTRIX", if (webSearchMode) "جستجو روشن شد" else "جستجو خاموش شد") })
         val composer = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val input = field("پیامت را بنویس...")
         composer.addView(input, LinearLayout.LayoutParams(0, -2, 1f))
