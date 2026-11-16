@@ -2,7 +2,7 @@ import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
   appId: "com.veltrix.game",
-  appName: "VELTRIX AI",
+  appName: "VELTRIX",
   webDir: "out",
   server: { androidScheme: "https" }
 };
