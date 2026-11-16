@@ -17,11 +17,13 @@ class MainActivity : Activity() {
     private val panel = Color.rgb(29, 42, 62)
     private val accent = Color.rgb(100, 190, 255)
     private lateinit var auth: AuthStore
+    private lateinit var brain: BrainModel
     private lateinit var root: LinearLayout
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         auth = AuthStore(this)
+        brain = BrainModel(this)
         window.statusBarColor = bg
         window.navigationBarColor = bg
         root = LinearLayout(this).apply {
@@ -120,7 +122,7 @@ class MainActivity : Activity() {
         }
         scroll.addView(messages)
         root.addView(scroll, LinearLayout.LayoutParams(-1, 0, 1f))
-        addMessage(messages, "VELTRIX", "حساب کاربری فعال شد. هسته هوش مصنوعی اختصاصی هنوز در حال ساخت است؛ فعلاً پاسخ هوشمند تولید نمی‌کنم.")
+        addMessage(messages, "VELTRIX", if (brain.isReady()) "مغز عصبی آفلاین بارگذاری شد." else "هسته VELTRIX آماده اتصال است؛ هنوز مدل آموزش‌دیده‌ای در فایل‌های برنامه وجود ندارد.")
         val composer = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
         val input = field("پیامت را بنویس...")
         composer.addView(input, LinearLayout.LayoutParams(0, -2, 1f))
@@ -129,7 +131,7 @@ class MainActivity : Activity() {
             if (msg.isNotEmpty()) {
                 addMessage(messages, "شما", msg)
                 input.setText("")
-                addMessage(messages, "VELTRIX", "پیام دریافت شد؛ موتور استدلال اختصاصی در مرحله بعد به این بخش متصل می‌شود.")
+                val answer = brain.generate(msg)\n                addMessage(messages, "VELTRIX", answer ?: "مدل آموزش‌دیده پیدا نشد. ابتدا طبق راهنمای پوشه brain مدل را روی کامپیوتر آموزش بده و فایل خروجی را به assets برنامه اضافه کن.")
             }
         })
         root.addView(composer)
