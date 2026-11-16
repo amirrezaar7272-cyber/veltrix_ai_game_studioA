@@ -1,74 +1,15 @@
-# VELTRIX AI — BEYOND INTELLIGENCE
+# VELTRIX Apk
 
-VELTRIX is a local-first, bilingual 2D game-studio foundation. It combines an optional on-device language model, scene authoring, a playable canvas runtime, physics, keyframe animation, embedded audio, event-driven visual logic, and an Android packaging workflow.
+شروع دوباره پروژه از صفر.
 
-## Studio capabilities
+هدف پروژه: ساخت یک دستیار هوش مصنوعی مستقل با قابلیت تولید و بسته‌بندی اپلیکیشن اندروید (APK).
 
-- Persian and English prompt interface.
-- Optional Qwen2.5 0.5B in-browser inference through WebLLM/WebGPU; no AI API key or paid inference server is required. A lightweight local fallback is used on unsupported devices.
-- Versioned .veltrix projects with multiple scenes, entity types, project validation, local auto-save and import/export.
-- Drag-and-drop scene editor, grid snapping, zoom, layer ordering, keyboard shortcuts and entity inspector.
-- Playable 2D runtime with keyboard and touch input, score, lives, collectibles, hazards, goals and scene progression.
-- Procedural cinematic renderer with layered skyline depth, gradient lighting, vignette, stylized character/NPC/enemy/collectible/portal/platform artwork, a directional procedural player walk cycle, and bounded particle bursts for collection and damage.
-- City role-play starter template with a top-down road grid, sidewalks, crosswalks, collision-enabled buildings, parked vehicles, wandering residents, a collectible and a mission marker. Players can enter and drive nearby vehicles with E or the mobile action button; vehicle movement is blocked by buildings. The local design brain can select this template from city/role-play prompts.
-- Deterministic 2D AABB physics world with fixed-size substeps, gravity, body types, mass-scaled player acceleration, friction, restitution, platform landing, jump input and sensor overlap detection. The current runtime simulates the controlled player against static geometry; it is an arcade/platformer solver, not a complete multi-body, 3D or constraint-based rigid-body engine.
-- Per-entity keyframe tracks with interpolation, linear/ease-in/ease-out/ease-in-out curves, duration and looping. Tracks can be previewed in the editor and sampled during gameplay.
-- Scene audio library: up to two audio files per scene, each up to 1 MB, embedded in .veltrix project data; volume and music/effect mode are configurable. Audio can be triggered by visual logic nodes. Browser autoplay rules still apply.
-- Directed visual event graph with start, collision, collect and goal triggers; move, wait, play-audio, set-visible and set-score actions. Graph traversal is bounded to prevent cyclic graphs from hanging the game loop.
-- Local token wallet with 50/100/400-token and unlimited redemption tiers; each successful AI game generation costs 10 tokens. Redemption is stored in browser localStorage and is one-time per browser profile only, not globally secure.
-- GitHub Actions workflow for a free static GitHub Pages website, plus a separate workflow to compile a debug Android APK and publish it as a workflow artifact.
-- Responsive mobile and desktop UI.
+## اصول پروژه
+- اولویت با ابزارها و مدل‌های رایگان و قابل اجرا روی دستگاه کاربر
+- عدم وابستگی اجباری به API یا سرور پولی
+- معماری ماژولار و قابل توسعه
+- پشتیبانی از فارسی و انگلیسی
+- بررسی و آزمون قبل از انتشار هر نسخه
 
-## Free hosted website
-
-The intended GitHub Pages address is `https://amirrezaar7272-cyber.github.io/veltrix_ai_game_studioA/`. To activate deployment, open **Repository Settings → Pages** and set the build/deployment source to **GitHub Actions**. The site URL is usable only after the Pages workflow completes successfully.
-
-## Run locally
-
-Requirements: Node.js 20+ and npm.
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open http://localhost:3000.
-
-For validation and static production output:
-
-```bash
-npx tsc --noEmit
-npm test
-npm run build
-```
-
-## Build an Android APK
-
-1. Open the repository's **Actions** tab.
-2. Select **Android APK build** and choose **Run workflow**.
-3. Keep the default application ID or enter a valid reverse-domain ID such as `com.example.mygame`.
-4. Wait for the workflow to finish, then download the `veltrix-ai-debug-apk` artifact from that run.
-5. Install and test the debug APK on a real Android device. A release APK/AAB still needs signing configuration before store distribution.
-
-The workflow uses GitHub-hosted build runners, Node.js, Capacitor, Java and Gradle. The APK is built remotely by GitHub Actions, not on the phone. The current Android package is a WebView wrapper around the static web export; WebGPU/model support depends on the Android WebView/device and may fall back to the lightweight local brain.
-
-## On-device model
-
-The optional local model requires a compatible WebGPU browser/GPU and an initial model download. The current model is Qwen2.5 0.5B (quantized). Compatibility and memory use vary by device. On unsupported or constrained devices, VELTRIX uses its lightweight local fallback. Prompts processed through this local path are not sent to an AI API.
-
-## Token wallet limitations
-
-The current token wallet is a local prototype. It stores the balance and redeemed-code fingerprints in the current browser profile. Clearing browser storage, switching browsers/devices, or modifying client-side data can reset or alter it. Do not use it for paid credits or enforceable entitlements. A secure globally one-time redemption system requires a trusted server-side database and atomic redemption endpoint; no such backend is configured in this free static build.
-
-## Project storage
-
-Projects are stored in the current browser profile. Use Export .veltrix for a backup before clearing browser data or switching devices. Embedded audio is included in exported project files. Audio is limited to two files per scene and 1 MB per file to avoid exceeding typical browser storage quotas.
-
-## Current engineering limits
-
-This is not yet a finished commercial game engine and it is not a 3D open-world game comparable to RP City. The renderer is a polished procedural 2D presentation with depth cues, not a true 3D world. Physics is 2D axis-aligned collision handling rather than a full rigid-body solver; there is no joint/constraint system, continuous collision detection for fast projectiles, or 3D physics. Animation is transform keyframes only, without skeletal rigs, sprite sheets or a full curve editor. Audio supports embedded short clips and event-triggered playback, not a multitrack mixer, streaming music pipeline or advanced spatial audio. Visual scripting supports a bounded set of events/actions and does not yet include arbitrary user code, branching expressions, variables or a debugger. Android automation currently creates a debug APK; signing, release AAB, store publishing and native plugin integrations remain separate work. The current scope is a mobile-friendly 2D/2.5D studio foundation with a top-down city prototype, not a fully simulated open-world city. Reaching a true 3D city-game quality bar requires a dedicated 3D renderer, streamed world/terrain, imported optimized character and vehicle assets, skeletal animation, vehicle physics, NPC navigation/behavior, and extensive device profiling. No physical-device test is claimed until an APK is installed and exercised on target phones.
-
-## Continuous integration
-
-The frontend workflow runs TypeScript validation, engine unit tests and a Next.js static production build on pushes and pull requests targeting `main`. The Android workflow builds a debug APK and uploads it as an artifact.
+## وضعیت
+این مخزن برای شروع پیاده‌سازی جدید پاک‌سازی شده است. هنوز کد اجرایی یا APK جدیدی در این نسخه وجود ندارد.
