@@ -139,8 +139,8 @@ class MainActivity : Activity() {
                     addMessage(messages, "VELTRIX", "در حال جستجو…")
                     io.execute { val result = WebSearchService.searchAndSummarize(msg); runOnUiThread { addMessage(messages, "VELTRIX", result) } }
                 } else {
-                    val answer = brain.generate(msg)
-                    addMessage(messages, "VELTRIX", answer ?: "مدل آموزش‌دیده پیدا نشد. ابتدا طبق راهنمای پوشه brain مدل را روی کامپیوتر آموزش بده و فایل خروجی را به assets برنامه اضافه کن.")
+                    val answer = brain.generate(msg) ?: ChatResponder.reply(msg)
+                    addMessage(messages, "VELTRIX", answer)
                 }
             }
         })
