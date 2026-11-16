@@ -131,7 +131,8 @@ class MainActivity : Activity() {
             if (msg.isNotEmpty()) {
                 addMessage(messages, "شما", msg)
                 input.setText("")
-                val answer = brain.generate(msg)\n                addMessage(messages, "VELTRIX", answer ?: "مدل آموزش‌دیده پیدا نشد. ابتدا طبق راهنمای پوشه brain مدل را روی کامپیوتر آموزش بده و فایل خروجی را به assets برنامه اضافه کن.")
+                val answer = brain.generate(msg)
+                addMessage(messages, "VELTRIX", answer ?: "مدل آموزش‌دیده پیدا نشد. ابتدا طبق راهنمای پوشه brain مدل را روی کامپیوتر آموزش بده و فایل خروجی را به assets برنامه اضافه کن.")
             }
         })
         root.addView(composer)
