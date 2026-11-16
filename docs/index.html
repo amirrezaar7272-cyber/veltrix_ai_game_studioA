@@ -25,36 +25,22 @@ main{max-width:850px;margin:auto;padding:24px 16px 36px}.top{text-align:center;p
 </main>
 <script>
 const messages=document.getElementById('messages'),input=document.getElementById('prompt'),form=document.getElementById('form');
+let qaMap=new Map();
 function add(text,who){const el=document.createElement('div');el.className='msg '+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
-function norm(s){return s.toLowerCase().replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\u064B-\u065F\u0670]/g,'').replace(/[؟?!،,.؛:ـ\u200c]/g,' ').replace(/\s+/g,' ').trim();}
-function has(q,words){return words.some(w=>q.includes(w));}
-function websiteCode(){return 'قالب شروع وب‌سایت (فایل index.html):\n\n<!doctype html>\n<html lang="fa" dir="rtl">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width,initial-scale=1">\n<title>وب‌سایت من</title>\n<style>body{margin:0;font-family:Tahoma;background:#101827;color:white;padding:24px}main{max-width:700px;margin:8vh auto;background:#1d2a40;padding:32px;border-radius:18px}button{padding:12px 22px;border:0;border-radius:10px;background:#38bdf8;cursor:pointer}</style>\n</head>\n<body><main><h1>سلام! به سایت من خوش آمدی</h1><p>این اولین صفحه وب من است.</p><button id="hello">کلیک کن</button><p id="result"></p></main>\n<script>document.getElementById("hello").addEventListener("click",()=>document.getElementById("result").textContent="دکمه درست کار می‌کند!");<\\/script>\n</body></html>\n\nکد را در فایل index.html ذخیره و با مرورگر باز کن. برای پروژه واقعی، امکانات و طراحی موردنظرت را هم بگو.';}
-function pythonCode(){return 'ماشین‌حساب پایتون (calculator.py):\n\ndef calculator():\n    while True:\n        first = input("عدد اول (برای خروج q): ")\n        if first.lower() == "q": break\n        op = input("عملگر (+, -, *, /): ")\n        second = input("عدد دوم: ")\n        try:\n            a, b = float(first), float(second)\n            if op == "+": result = a + b\n            elif op == "-": result = a - b\n            elif op == "*": result = a * b\n            elif op == "/":\n                if b == 0: print("تقسیم بر صفر مجاز نیست"); continue\n                result = a / b\n            else: print("عملگر نامعتبر"); continue\n            print("نتیجه:", result)\n        except ValueError: print("لطفاً عدد معتبر وارد کن")\n\nif __name__ == "__main__": calculator()\n\nاجرا: python calculator.py';}
+function norm(s){return s.toLowerCase().replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\\u064B-\\u065F\\u0670]/g,'').replace(/[؟?!،,.؛:ـ\\u200c]/g,' ').replace(/\\s+/g,' ').trim();}
+fetch('./everyday-qa.json').then(r=>{if(!r.ok)throw new Error('dataset');return r.json();}).then(rows=>{for(const row of rows)qaMap.set(norm(row.q),row.a);}).catch(()=>{});
 function answer(raw){
 const q=norm(raw);if(!q)return 'پیامت خالیه؛ چیزی بنویس تا با هم صحبت کنیم.';
-if(has(q,['سلام','درود','صبح بخیر','عصر بخیر','hello','hi ','hey']))return 'سلام! 😊 خوش اومدی. من خوبم و آماده‌ام کمکت کنم. تو چطوری؟';
-if(has(q,['خوبی','خوب هستی','چطوری','حالت چطوره','چه خبر','how are you']))return 'ممنون که پرسیدی! 😊 من خوبم و آماده‌ام باهات گپ بزنم. تو خوبی؟';
-if(has(q,['اسمت چیه','اسم تو','نامت چیه','کی هستی','who are you','your name']))return 'من VELTRIX AI هستم؛ یک دستیار گفت‌وگویی فارسی و انگلیسی که در حال توسعه است.';
-if(has(q,['چند سالته','سن تو']))return 'من انسان نیستم و سن واقعی ندارم؛ VELTRIX AI یک پروژه نرم‌افزاری است.';
-if(has(q,['ممنون','مرسی','دمت گرم','سپاس','متشکرم','thank you','thanks']))return 'خواهش می‌کنم! 🌟 خوشحالم که تونستم کمک کنم.';
-if(has(q,['ببخشید','معذرت','شرمنده']))return 'اشکالی نداره 😊 بگو ببینم چطور می‌تونم کمک کنم.';
-if(has(q,['خداحافظ','بای','فعلا','فعلاً','goodbye','bye']))return 'فعلاً! 👋 هر وقت خواستی برگرد تا دوباره گپ بزنیم.';
-if(has(q,['دوستت دارم','عاشقتم']))return 'چه مهربون! 💙 من احساس انسانی ندارم، ولی با کمال میل همراه و کمکت می‌کنم.';
-if(has(q,['جوک','شوخی','بخندون']))return 'یه برنامه‌نویس گفت کدم بدون باگ اجرا شد! دوستش گفت: پس هنوز اجراش نکردی! 😄';
-if(has(q,['سایت','وبسایت','وب سایت','website'])&&has(q,['برنامه نویسی','برنامه‌نویسی','کدنویسی','coding','code']))return 'برای برنامه‌نویسی این سایت‌ها مفیدن:\n\n1) freeCodeCamp: https://www.freecodecamp.org/\n2) MDN: https://developer.mozilla.org/\n3) W3Schools: https://www.w3schools.com/\n4) GitHub: https://github.com/\n\nاگر بگی با گوشی کار می‌کنی یا کامپیوتر و چه زبانی می‌خوای، دقیق‌تر پیشنهاد می‌دم.';
-if(has(q,['سایت','وبسایت','وب سایت','website']))return 'حتماً! چند سایت مفید:\n\n• آموزش رایگان: https://www.khanacademy.org/\n• دانشنامه: https://www.wikipedia.org/\n• یادگیری برنامه‌نویسی: https://www.freecodecamp.org/\n• ویرایشگر تصویر آنلاین: https://www.photopea.com/\n\nدنبال سایت در چه زمینه‌ای هستی؟';
-if(has(q,['کد','کدنویسی','برنامه نویسی','برنامه‌نویسی','code','coding','پایتون','python','html','javascript','جاوا'])){
-if(has(q,['خطا','ارور','باگ','error','debug','کار نمیکنه','کار نمی کنه']))return 'حتماً بررسی می‌کنم. کل کد، متن دقیق خطا و بگو انتظار داشتی چه اتفاقی بیفته. بدون دیدن کد و خطا علت را حدس نمی‌زنم.';
-if(has(q,['سایت','صفحه وب','وبسایت','وب سایت']))return websiteCode();
-if(has(q,['ماشین حساب','calculator','پایتون','python']))return pythonCode();
-return 'می‌تونم نمونه‌کد آموزشی و راهنمایی برنامه‌نویسی ارائه کنم؛ اما هنوز موتور کدنویسی پیشرفته‌ای ندارم که پروژه بزرگ را خودکار بسازد، اجرا کند و همه خطاهایش را رفع کند.\n\nبرای شروع، بگو چه چیزی می‌سازی، با چه زبان یا فناوری، چه قابلیت‌هایی می‌خواهی و خروجی وب است یا اندروید یا دسکتاپ؟';
+const known=qaMap.get(q);if(known)return known;
+if(q.includes('سلام')||q.includes('درود')||q==='hi'||q==='hello')return 'سلام! 😊 خوش اومدی. من خوبم و آماده‌ام کمکت کنم. تو چطوری؟';
+if(q.includes('خوبی')||q.includes('چطوری')||q.includes('حالت چطوره')||q.includes('how are you'))return 'ممنون که پرسیدی! 😊 من خوبم و آماده‌ام باهات گپ بزنم. تو خوبی؟';
+if(q.includes('اسمت')||q.includes('نامت')||q.includes('who are you'))return 'من VELTRIX AI هستم؛ دستیار گفت‌وگویی فارسی و انگلیسی.';
+if(q.includes('سایت')&&(q.includes('برنامه نویسی')||q.includes('کدنویسی')))return 'برای برنامه‌نویسی این سایت‌ها مفیدن:\n\n• freeCodeCamp: https://www.freecodecamp.org/\n• MDN: https://developer.mozilla.org/\n• W3Schools: https://www.w3schools.com/';
+if(q.includes('کد')||q.includes('برنامه نویسی')||q.includes('coding'))return 'زبان برنامه‌نویسی و کاری که می‌خواهی انجام بدهی را بگو تا نمونه‌کد و راهنمایی بدهم. موتور کدنویسی پیشرفته و اجرای خودکار هنوز در حال توسعه است.';
+if(q.includes('ممنون')||q.includes('مرسی'))return 'خواهش می‌کنم! 🌟';
+return 'این پرسش هنوز در مجموعهٔ پاسخ‌های آفلاین من نیست. لطفاً کمی دقیق‌تر بپرس.';
 }
-if(has(q,['قابلیت','چه کار','چه کاری','کمک میکنی','کمک می کنی']))return 'می‌تونم گفت‌وگوی روزمره داشته باشم، سایت معرفی کنم، نمونه‌کدهای آموزشی بسازم و درباره خطاهای رایج راهنمایی بدم. برای پاسخ‌گویی عمومی پیشرفته و ساخت خودکار پروژه به مدل زبانی واقعی و ابزار اجرای کد نیاز داریم.';
-if(has(q,['خوبم','من خوبم','عالی ام','عالی‌ام']))return 'چه عالی! 😄 امروز دوست داری درباره چی صحبت کنیم؟';
-if(has(q,['خبر','اخبار','news']))return 'برای خبرهای تازه باید جستجوی وب انجام بشه. حالت جستجوی اینترنت رو روشن کن و موضوع خبر رو بنویس.';
-return 'می‌خوام درست راهنمایی‌ات کنم، ولی این نسخه هنوز مدل زبانی عمومی و فهم عمیق متن نداره. لطفاً سؤال رو کمی دقیق‌تر بنویس یا موضوعش رو مشخص کن.';
-}
-function send(text){const value=(text??input.value).trim();if(!value)return;add(value,'user');input.value='';setTimeout(()=>add(answer(value),'bot'),120);}
+function send(text){const value=(text??input.value).trim();if(!value)return;add(value,'user');input.value='';setTimeout(()=>add(answer(value),'bot'),100);}
 form.addEventListener('submit',e=>{e.preventDefault();send();});
 document.querySelectorAll('[data-prompt]').forEach(b=>b.addEventListener('click',()=>send(b.dataset.prompt)));
 </script></body></html>
