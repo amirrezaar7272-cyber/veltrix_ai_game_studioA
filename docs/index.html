@@ -27,7 +27,7 @@ main{max-width:850px;margin:auto;padding:24px 16px 36px}.top{text-align:center;p
 const messages=document.getElementById('messages'),input=document.getElementById('prompt'),form=document.getElementById('form');
 let qaMap=new Map();
 function add(text,who){const el=document.createElement('div');el.className='msg '+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
-function norm(s){return s.toLowerCase().replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[\\u064B-\\u065F\\u0670]/g,'').replace(/[؟?!،,.؛:ـ\\u200c]/g,' ').replace(/\\s+/g,' ').trim();}
+function norm(s){return s.toLowerCase().replace(/ي/g,'ی').replace(/ك/g,'ک').replace(/[؟?!،,.؛:ـ]/g,' ').trim().split(' ').filter(Boolean).join(' ');}
 fetch('./everyday-qa.json').then(r=>{if(!r.ok)throw new Error('dataset');return r.json();}).then(rows=>{for(const row of rows)qaMap.set(norm(row.q),row.a);}).catch(()=>{});
 function answer(raw){
 const q=norm(raw);if(!q)return 'پیامت خالیه؛ چیزی بنویس تا با هم صحبت کنیم.';
