@@ -139,7 +139,7 @@ class MainActivity : Activity() {
                     addMessage(messages, "VELTRIX", "در حال جستجو…")
                     io.execute { val result = WebSearchService.searchAndSummarize(msg); runOnUiThread { addMessage(messages, "VELTRIX", result) } }
                 } else {
-                    val answer = brain.generate(msg) ?: ChatResponder.reply(msg)
+                    val answer = brain.generate(msg) ?: EverydayKnowledge.reply(this, msg) ?: ChatResponder.reply(msg)
                     addMessage(messages, "VELTRIX", answer)
                 }
             }
