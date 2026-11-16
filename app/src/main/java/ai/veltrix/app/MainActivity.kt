@@ -11,6 +11,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.text.InputType
+import java.util.concurrent.Executors
 
 class MainActivity : Activity() {
     private val bg = Color.rgb(12, 18, 32)
@@ -19,6 +20,8 @@ class MainActivity : Activity() {
     private lateinit var auth: AuthStore
     private lateinit var brain: BrainModel
     private lateinit var root: LinearLayout
+    private val io = Executors.newSingleThreadExecutor()
+    private var webSearchMode = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -111,6 +114,7 @@ class MainActivity : Activity() {
             setTextColor(Color.WHITE)
             gravity = Gravity.CENTER
         })
+        root.addView(action("جستجوی اینترنت: روشن / خاموش") { webSearchMode = !webSearchMode; addMessage(messages, "VELTRIX", if (webSearchMode) "جستجو روشن شد" else "جستجو خاموش شد") })
         root.addView(action("خروج از حساب") {
             auth.logout()
             showAuth()
@@ -131,8 +135,13 @@ class MainActivity : Activity() {
             if (msg.isNotEmpty()) {
                 addMessage(messages, "شما", msg)
                 input.setText("")
-                val answer = brain.generate(msg)
-                addMessage(messages, "VELTRIX", answer ?: "مدل آموزش‌دیده پیدا نشد. ابتدا طبق راهنمای پوشه brain مدل را روی کامپیوتر آموزش بده و فایل خروجی را به assets برنامه اضافه کن.")
+                if (webSearchMode) {
+                    addMessage(messages, "VELTRIX", "در حال جستجو…")
+                    io.execute { val result = WebSearchService.searchAndSummarize(msg); runOnUiThread { addMessage(messages, "VELTRIX", result) } }
+                } else {
+                    val answer = brain.generate(msg)
+                    addMessage(messages, "VELTRIX", answer ?: "مدل آموزش‌دیده پیدا نشد. ابتدا طبق راهنمای پوشه brain مدل را روی کامپیوتر آموزش بده و فایل خروجی را به assets برنامه اضافه کن.")
+                }
             }
         })
         root.addView(composer)
